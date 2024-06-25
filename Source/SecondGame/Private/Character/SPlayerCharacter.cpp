@@ -71,10 +71,12 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
     if (IsValid(EnhancedInputComponent) == true)
     {
-        // Move('IA_Move')을 트리거 상태에서 InputMove() 함수와 바인드 시켜준다
+        // Move('IA_Move')을 트리거 상태에서 InputMove() 함수와 바인드
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Move, ETriggerEvent::Triggered, this, &ThisClass::InputMove);
-        // Look('IA_Look')을 트리거 상태에서 InputLook() 함수와 바인드 시켜준다
+        // Look('IA_Look')을 트리거 상태에서 InputLook() 함수와 바인드
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Look, ETriggerEvent::Triggered, this, &ThisClass::InputLook);
+        // Jump('IA_Jump')을 스타트 상태에서 ACharater 클래스의 Jump() 함수와 바인드
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
     }
 }
 

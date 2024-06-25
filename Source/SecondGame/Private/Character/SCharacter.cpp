@@ -19,13 +19,11 @@ ASCharacter::ASCharacter()
     GetMesh()->SetRelativeLocationAndRotation(PivotPosition, PivotRotation);
 
     // MaxWalkSpeed: 캐릭터가 Walk mode일 때 최대 속력
-    GetCharacterMovement()->MaxWalkSpeed = 500.f;
+    GetCharacterMovement()->MaxWalkSpeed = 400.f;
     // MinAnalogWalkSpeed: 디지털과 아날로그(키보드 - 조이스틱) 입력 움직임 간극의 보완값
     GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
     // JumpZVelocity: 캐릭터가 점프할 때 속도
-    GetCharacterMovement()->JumpZVelocity = 1200.f;
-    // Gravity Scale: 캐릭터 점프 이후 떨어지는 속도 (중력 세기)
-    GetCharacterMovement()->GravityScale = 3.f;
+    GetCharacterMovement()->JumpZVelocity = 700.f;
     // AirControl: 공중에 떠있을 때 움직일 수 있는 정도
     GetCharacterMovement()->AirControl = 0.35f;
     // BrakingDecelerationWalking: 움직임을 멈췄을 때 멈추는 속도
