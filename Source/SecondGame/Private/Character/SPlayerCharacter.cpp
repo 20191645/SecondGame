@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Input/SInputConfigData.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Item/SWeaponActor.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -77,6 +78,12 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Look, ETriggerEvent::Triggered, this, &ThisClass::InputLook);
         // Jump('IA_Jump')을 스타트 상태에서 ACharater 클래스의 Jump() 함수와 바인드
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
+        // QuickSlot01('IA_QuickSlot01')을 스타트 상태에서 InputQuickSlot01() 함수와 바인드
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->QuickSlot01, ETriggerEvent::Started, this, &ThisClass::InputQuickSlot01);
+        // QuickSlot02('IA_QuickSlot02')을 스타트 상태에서 InputQuickSlot02() 함수와 바인드
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->QuickSlot02, ETriggerEvent::Started, this, &ThisClass::InputQuickSlot02);
+        // QuickSlot03('IA_QuickSlot03')을 스타트 상태에서 InputQuickSlot03() 함수와 바인드
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->QuickSlot03, ETriggerEvent::Started, this, &ThisClass::InputQuickSlot03);
     }
 }
 
@@ -119,5 +126,65 @@ void ASPlayerCharacter::InputLook(const FInputActionValue& InValue)
         // 'IMC_PlayerCharacter'에서 X값에는 마우스 좌우 값을, Y값에는 마우스 상하 값의 반대값을 설정
         AddControllerYawInput(LookVector.X);
         AddControllerPitchInput(LookVector.Y);
+    }
+}
+
+void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
+{
+    // 장착한 무기 제거
+    if (IsValid(WeaponInstance) == true)
+    {
+        WeaponInstance->Destroy();
+        WeaponInstance = nullptr;
+    }
+}
+
+void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
+{
+    if (IsValid(WeaponInstance) == true)
+    {
+        // 이미 'WeaponClass01' 클래스의 무기 액터 장착 시 return
+        if (WeaponInstance.GetClass() == WeaponClass01) {
+            return;
+        }
+
+        WeaponInstance->Destroy();
+        WeaponInstance = nullptr;
+    }
+
+    FName WeaponSocket(TEXT("WeaponSocket01"));
+    if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
+    {
+        // 'WeaponClass01' 클래스의 무기 액터 스폰
+        WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass01, FVector::ZeroVector, FRotator::ZeroRotator);
+        if (IsValid(WeaponInstance) == true)
+        {
+            WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+        }
+    }
+}
+
+void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
+{
+    if (IsValid(WeaponInstance) == true)
+    {
+        // 이미 'WeaponClass02' 클래스의 무기 액터 장착 시 return
+        if (WeaponInstance.GetClass() == WeaponClass02) {
+            return;
+        }
+
+        WeaponInstance->Destroy();
+        WeaponInstance = nullptr;
+    }
+
+    FName WeaponSocket(TEXT("WeaponSocket02"));
+    if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
+    {
+        // 'WeaponClass02' 클래스의 무기 액터 스폰
+        WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass02, FVector::ZeroVector, FRotator::ZeroRotator);
+        if (IsValid(WeaponInstance) == true)
+        {
+            WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+        }
     }
 }

@@ -25,4 +25,16 @@ public:
 	// 'IA_Jump'에 대응하는 속성
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInputAction> Jump;
+
+	// 'IA_QuickSlot01'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> QuickSlot01;
+
+	// 'IA_QuickSlot02'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> QuickSlot02;
+
+	// 'IA_QuickSlot03'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> QuickSlot03;
 };

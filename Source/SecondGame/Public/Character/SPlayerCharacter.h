@@ -11,6 +11,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class USInputConfigData;
 class UInputMappingContext;
+class ASWeaponActor;
 
 UCLASS()
 class SECONDGAME_API ASPlayerCharacter : public ASCharacter
@@ -35,6 +36,13 @@ private:
 	// 'IA_Look' 입력에 대응하는 함수
 	void InputLook(const FInputActionValue& InValue);
 
+	// 'IA_QuickSlot01' 입력에 대응하는 함수
+	void InputQuickSlot01(const FInputActionValue& InValue);
+	// 'IA_QuickSlot02' 입력에 대응하는 함수
+	void InputQuickSlot02(const FInputActionValue& InValue);
+	// 'IA_QuickSlot03' 입력에 대응하는 함수
+	void InputQuickSlot03(const FInputActionValue& InValue);
+
 protected:
 	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트 - 카메라 봉 길이, 컴포넌트 회전 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -55,4 +63,14 @@ protected:
 	float ForwardInputValue;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float RightInputValue;
+
+	// 무기 액터1 클래스 정보 -- 'Pistols_A'
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TSubclassOf<ASWeaponActor> WeaponClass01;
+	// 무기 액터2 클래스 정보 -- 'Assault_Rifle_A'
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TSubclassOf<ASWeaponActor> WeaponClass02;
+	// 무기 액터 개체
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TObjectPtr<ASWeaponActor> WeaponInstance;
 };
