@@ -43,6 +43,9 @@ private:
 	// 'IA_QuickSlot03' 입력에 대응하는 함수
 	void InputQuickSlot03(const FInputActionValue& InValue);
 
+	// 'IA_Crouch' 입력에 대응하는 함수
+	void InputCrouch(const FInputActionValue& InValue);
+
 protected:
 	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트 - 카메라 봉 길이, 컴포넌트 회전 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))

@@ -37,4 +37,8 @@ public:
 	// 'IA_QuickSlot03'에 대응하는 속성
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInputAction> QuickSlot03;
+
+	// 'IA_Crouch'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> Crouch;
 };

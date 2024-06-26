@@ -8,6 +8,8 @@
 #include "Input/SInputConfigData.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Item/SWeaponActor.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Animation/SAnimInstance.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -44,6 +46,11 @@ ASPlayerCharacter::ASPlayerCharacter()
     GetCharacterMovement()->bOrientRotationToMovement = false;
     // bUseControllerDesiredRotation: ControlRotation을 목표 회전값으로 삼아서 회전하지 않는다 [false]
     GetCharacterMovement()->bUseControllerDesiredRotation = false;
+
+    // 웅크리기 동작 허용
+    if (GetMovementComponent()) {
+        GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
+    }
 }
 
 void ASPlayerCharacter::BeginPlay()
@@ -84,6 +91,8 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->QuickSlot02, ETriggerEvent::Started, this, &ThisClass::InputQuickSlot02);
         // QuickSlot03('IA_QuickSlot03')을 스타트 상태에서 InputQuickSlot03() 함수와 바인드
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->QuickSlot03, ETriggerEvent::Started, this, &ThisClass::InputQuickSlot03);
+        // Crouch('IA_Crouch')을 스타트 상태에서 InputCrouch() 함수와 바인드
+        EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Crouch, ETriggerEvent::Started, this, &ThisClass::InputCrouch);
     }
 }
 
@@ -131,9 +140,23 @@ void ASPlayerCharacter::InputLook(const FInputActionValue& InValue)
 
 void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 {
-    // 장착한 무기 제거
     if (IsValid(WeaponInstance) == true)
     {
+        // 무기 해제 시 사용할 Animation Layer 연결
+        TSubclassOf<UAnimInstance> UnarmedCharacterAnimLayer = WeaponInstance->GetUnarmedCharacterAnimLayer();
+        if (IsValid(UnarmedCharacterAnimLayer) == true)
+        {
+            GetMesh()->LinkAnimClassLayers(UnarmedCharacterAnimLayer);
+        }
+
+        // 무기 탈착 애니메이션 재생
+        USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+        if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetUnequipAnimMontage()))
+        {
+            AnimInstance->Montage_Play(WeaponInstance->GetUnequipAnimMontage());
+        }
+
+        // 장착한 무기 제거
         WeaponInstance->Destroy();
         WeaponInstance = nullptr;
     }
@@ -148,6 +171,7 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
             return;
         }
 
+        // 'WeaponClass02' 클래스의 무기 액터 장착 시 삭제
         WeaponInstance->Destroy();
         WeaponInstance = nullptr;
     }
@@ -161,6 +185,20 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
         {
             WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
         }
+
+        // 피스톨 무기 장착 시 사용할 Animation Layer 연결
+        TSubclassOf<UAnimInstance> PistolCharacterAnimLayer = WeaponInstance->GetPistolCharacterAnimLayer();
+        if (IsValid(PistolCharacterAnimLayer) == true)
+        {
+            GetMesh()->LinkAnimClassLayers(PistolCharacterAnimLayer);
+        }
+
+        // 무기 장착 애니메이션 재생
+        USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+        if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+        {
+            AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
+        }
     }
 }
 
@@ -173,6 +211,7 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
             return;
         }
 
+        // 'WeaponClass01' 클래스의 무기 액터 장착 시 삭제
         WeaponInstance->Destroy();
         WeaponInstance = nullptr;
     }
@@ -186,5 +225,30 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
         {
             WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
         }
+
+        // 라이플 무기 장착 시 사용할 Animation Layer 연결
+        TSubclassOf<UAnimInstance> RifleCharacterAnimLayer = WeaponInstance->GetRifleCharacterAnimLayer();
+        if (IsValid(RifleCharacterAnimLayer) == true)
+        {
+            GetMesh()->LinkAnimClassLayers(RifleCharacterAnimLayer);
+        }
+
+        // 무기 장착 애니메이션 재생
+        USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+        if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+        {
+            AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
+        }
+    }
+}
+
+void ASPlayerCharacter::InputCrouch(const FInputActionValue& InValue)
+{
+    if (bIsCrouched) {
+        UnCrouch();
+
+    }
+    else {
+        Crouch();
     }
 }
