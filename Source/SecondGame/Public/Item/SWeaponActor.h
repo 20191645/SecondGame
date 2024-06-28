@@ -17,12 +17,15 @@ class SECONDGAME_API ASWeaponActor : public AActor
 public:	
 	ASWeaponActor();
 
+	// 'Mesh' Getter 함수
 	USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
+	// 'UnarmedCharacterAnimLayer, PistolCharacterAnimLayer, RifleCharacterAnimLayer' Getter 함수
 	TSubclassOf<UAnimInstance> GetUnarmedCharacterAnimLayer() const { return UnarmedCharacterAnimLayer; }
 	TSubclassOf<UAnimInstance> GetPistolCharacterAnimLayer() const { return PistolCharacterAnimLayer; }
 	TSubclassOf<UAnimInstance> GetRifleCharacterAnimLayer() const { return RifleCharacterAnimLayer; }
 
+	// 'EquipAnimMontage, UnequipAnimMontage' Getter 함수
 	UAnimMontage* GetEquipAnimMontage() const { return EquipAnimMontage; }
 	UAnimMontage* GetUnequipAnimMontage() const { return UnequipAnimMontage; }
 

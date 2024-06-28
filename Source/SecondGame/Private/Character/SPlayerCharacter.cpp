@@ -47,7 +47,7 @@ ASPlayerCharacter::ASPlayerCharacter()
     // bUseControllerDesiredRotation: ControlRotation을 목표 회전값으로 삼아서 회전하지 않는다 [false]
     GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
-    // 웅크리기 동작 허용
+    // 앉는 동작 허용
     if (GetMovementComponent()) {
         GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
     }
@@ -98,6 +98,11 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ASPlayerCharacter::InputMove(const FInputActionValue& InValue)
 {
+    // 앉은 상태일 경우 풀기
+    if (bIsCrouched) {
+        UnCrouch();
+    }
+    
     // Input Action Value를 FVector2D(2차원) 형태로 해석하여 반환
     FVector2D MovementVector = InValue.Get<FVector2D>();
 

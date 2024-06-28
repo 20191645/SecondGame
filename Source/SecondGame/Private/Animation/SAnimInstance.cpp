@@ -17,6 +17,7 @@ void USAnimInstance::NativeInitializeAnimation()
 	CurrentSpeed = 0.f;
 	bIsFalling = false;
 	bIsCrouching = false;
+	Acceleration = FVector::ZeroVector;
 }
 
 void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -30,10 +31,47 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		UCharacterMovementComponent* CharacterMovementComponent = OwnerCharacter->GetCharacterMovement();
 		if (IsValid(CharacterMovementComponent) == true)
 		{
+			// 속성값 업데이트
 			Velocity = CharacterMovementComponent->GetLastUpdateVelocity();
 			CurrentSpeed = Velocity.Size();
 			bIsFalling = CharacterMovementComponent->IsFalling();
 			bIsCrouching = CharacterMovementComponent->IsCrouching();
+			Acceleration = CharacterMovementComponent->GetCurrentAcceleration();
+
+			// 'LocomotionState'의 State 설정
+			if (Acceleration.Length() < KINDA_SMALL_NUMBER && Velocity.Length() < KINDA_SMALL_NUMBER)
+			{
+				LocomotionState = ELocomotionState::Idle;
+			}
+			else
+			{
+				LocomotionState = ELocomotionState::Walk;
+			}
+
+			// 'MovementDirection'의 방향 설정
+			ASPlayerCharacter* OwnerPlayerCharacter = Cast<ASPlayerCharacter>(OwnerCharacter);
+			if (IsValid(OwnerPlayerCharacter) == true)
+			{
+				if (KINDA_SMALL_NUMBER < OwnerPlayerCharacter->GetForwardInputValue())
+				{
+					MovementDirection = EMovementDirection::Fwd;
+				}
+
+				if (OwnerPlayerCharacter->GetForwardInputValue() < -KINDA_SMALL_NUMBER)
+				{
+					MovementDirection = EMovementDirection::Bwd;
+				}
+
+				if (KINDA_SMALL_NUMBER < OwnerPlayerCharacter->GetRightInputValue())
+				{
+					MovementDirection = EMovementDirection::Right;
+				}
+
+				if (OwnerPlayerCharacter->GetRightInputValue() < -KINDA_SMALL_NUMBER)
+				{
+					MovementDirection = EMovementDirection::Left;
+				}
+			}
 		}
 	}
 }
