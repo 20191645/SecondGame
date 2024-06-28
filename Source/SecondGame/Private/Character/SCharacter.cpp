@@ -12,6 +12,8 @@ ASCharacter::ASCharacter()
     float CharacterRadius = 20.f;
 
     GetCapsuleComponent()->InitCapsuleSize(CharacterRadius, CharacterHalfHeight);
+    // Collision Preset 설정
+    GetCapsuleComponent()->SetCollisionProfileName(TEXT("SCharacter"));
 
     // PivotPosition, PivotRotation: 캡슐 컴포넌트와 에셋의 위치, 방향을 맞춰줌
     FVector PivotPosition(0.f, 0.f, -CharacterHalfHeight);
