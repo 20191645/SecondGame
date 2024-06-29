@@ -114,4 +114,11 @@ protected:
 	FTimerHandle BetweenShotsTimer;
 	// ø¨πﬂ ªÁ∞› Ω√∞£ ∞£∞›
 	float TimeBetweenFire;
+
+	// ¡‹ ¿ß¡¨ ≈¨∑°Ω∫ ¡§∫∏
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TSubclassOf<UUserWidget> SniperZoomUIClass;
+	// ¡‹ ¿ß¡¨ ∞≥√º
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TObjectPtr<UUserWidget> SniperZoomUIInstance;
 };

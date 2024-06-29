@@ -15,7 +15,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	// 조준점 위젯 정보
+	// 조준점 위젯 클래스 정보
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ASPlayerController, Meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> CrosshairUIClass;
 };

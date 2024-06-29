@@ -12,6 +12,7 @@
 #include "Animation/SAnimInstance.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
+#include "Blueprint/UserWidget.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -75,7 +76,7 @@ void ASPlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(PlayerCharacterInputMappingContext, 0);
 		}
 	}
-	
+
 	// 게임 시작 시 기본으로 'WeaponSocket01' 클래스 무기 액터 장착
 	FName WeaponSocket(TEXT("WeaponSocket01"));
 	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
@@ -86,6 +87,13 @@ void ASPlayerCharacter::BeginPlay()
 		{
 			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 		}
+	}
+
+	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
+	if (IsValid(SniperZoomUIClass) == true) {
+		SniperZoomUIInstance = CreateWidget<UUserWidget>(PlayerController, SniperZoomUIClass);
+		SniperZoomUIInstance->AddToViewport(0);
+		SniperZoomUIInstance->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -317,8 +325,8 @@ void ASPlayerCharacter::InputCrouch(const FInputActionValue& InValue)
 
 void ASPlayerCharacter::InputAttack(const FInputActionValue& InValue)
 {
-	// 캐릭터가 점프 중이거나 앉는 중이면 공격 불가
-	if (GetCharacterMovement()->IsFalling() == true || GetCharacterMovement()->IsCrouching() == true)
+	// 캐릭터가 점프 중이면 공격 불가
+	if (GetCharacterMovement()->IsFalling() == true)
 	{
 		return;
 	}
@@ -430,12 +438,24 @@ void ASPlayerCharacter::ZoomIn(const FInputActionValue& InValue)
 
 	// 목표 FOV 값 감소 -> 줌인
 	TargetFOV = 30.f;
+
+	// 줌 위젯 화면에 보이게 수정
+	if (IsValid(SniperZoomUIInstance) == true)
+	{
+		SniperZoomUIInstance->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
 {
 	// 목표 FOV 값 증가 -> 줌아웃
 	TargetFOV = 70.f;
+
+	// 줌 위젯 화면에서 안보이게 수정
+	if (IsValid(SniperZoomUIInstance) == true)
+	{
+		SniperZoomUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
@@ -444,7 +464,7 @@ void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
 	if (WeaponInstance.GetClass() != WeaponClass02) {
 		return;
 	}
-	
+
 	// 속성값 반전
 	bIsTriggerToggle = !bIsTriggerToggle;
 }
