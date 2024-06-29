@@ -71,6 +71,10 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				{
 					MovementDirection = EMovementDirection::Left;
 				}
+
+				// 컨트롤 로테이션 값 업데이트
+				ControlRotation.Pitch = OwnerPlayerCharacter->GetCurrentAimPitch();
+				ControlRotation.Yaw = OwnerPlayerCharacter->GetCurrentAimYaw();
 			}
 		}
 	}

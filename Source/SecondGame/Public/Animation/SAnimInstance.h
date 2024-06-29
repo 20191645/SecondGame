@@ -73,4 +73,8 @@ protected:
 	// 'EMovementDirection' 속성
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EMovementDirection MovementDirection;
+
+	// 컨트롤 로테이션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SAnimInstance", meta = (AllowPrivateAccess = true))
+	FRotator ControlRotation;
 };

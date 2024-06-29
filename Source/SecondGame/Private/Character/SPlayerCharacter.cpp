@@ -104,6 +104,14 @@ void ASPlayerCharacter::Tick(float DeltaSeconds)
 	// 일정한 속도로 현재 FOV 값을 목표 FOV 값으로 변경
 	CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, 35.f);
 	CameraComponent->SetFieldOfView(CurrentFOV);
+
+	// 컨트롤 로테이션으로부터 현재 에임 값 실시간 업데이트
+	if (IsValid(GetController()) == true)
+	{
+		FRotator ControlRotation = GetController()->GetControlRotation();
+		CurrentAimPitch = ControlRotation.Pitch;
+		CurrentAimYaw = ControlRotation.Yaw;
+	}
 }
 
 void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -426,6 +434,16 @@ void ASPlayerCharacter::TryFire()
 			}
 		}
 #pragma endregion
+
+#pragma region MontagePlay
+		// 사격 애니메이션 재생
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance) == true)
+		{
+			AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
+		}
+#pragma endregion
+
 	}
 }
 

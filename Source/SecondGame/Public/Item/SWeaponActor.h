@@ -30,6 +30,9 @@ public:
 	// 'MaxRange' Getter 함수
 	float GetMaxRange() const { return MaxRange; }
 
+	// 'FireAnimMontage' Getter 함수
+	UAnimMontage* GetFireAnimMontage() const { return FireAnimMontage; }
+
 protected:
 	// 무기 아이템이 사용할 Mesh 정보
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -49,4 +52,8 @@ protected:
 	// 공격 최대 사거리 (단위: cm)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess, Units = cm))
 	float MaxRange = 25000.f;
+
+	// 사격 애니메이션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UAnimMontage> FireAnimMontage;
 };

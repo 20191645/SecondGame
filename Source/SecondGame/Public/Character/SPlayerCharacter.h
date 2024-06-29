@@ -29,6 +29,10 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	// 'CurrentAimPitch, CurrentAimYaw' Getter 함수
+	float GetCurrentAimPitch() const { return CurrentAimPitch; }
+	float GetCurrentAimYaw() const { return CurrentAimYaw; }
+
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -107,7 +111,7 @@ protected:
 
 	// 연발 사격 시 분당 사격 횟수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	float FirePerMinute = 600;
+	float FirePerMinute = 240;
 	// 'IA_Trigger' 입력 시 값 반전 -- 단발/연발 토글링
 	bool bIsTriggerToggle = false;
 	// 연발 사격 타이머
@@ -121,4 +125,9 @@ protected:
 	// 줌 위젯 개체
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<UUserWidget> SniperZoomUIInstance;
+
+	// 현재 Pitch 방향 에임 값
+	float CurrentAimPitch = 0.f;
+	// 현재 Yaw 방향 에임 값
+	float CurrentAimYaw = 0.f;
 };
