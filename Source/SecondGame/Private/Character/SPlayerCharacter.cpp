@@ -40,7 +40,7 @@ ASPlayerCharacter::ASPlayerCharacter()
 	SpringArmComponent->bInheritRoll = false;
 	// bDoCollisionTest: 카메라가 벽에 부딪힐 때 뚫고 지나가지 않는다 [true]
 	SpringArmComponent->bDoCollisionTest = true;
-	SpringArmComponent->SetRelativeLocation(FVector(0.f, 0.f, 90.f));
+	SpringArmComponent->SetRelativeLocation(FVector(0.f, 30.f, 90.f));
 	SpringArmComponent->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
 
 	// RotationRate: 회전 속도
@@ -73,6 +73,18 @@ void ASPlayerCharacter::BeginPlay()
 		{
 			// 서브 시스템에 Mapping Context 추가
 			Subsystem->AddMappingContext(PlayerCharacterInputMappingContext, 0);
+		}
+	}
+	
+	// 게임 시작 시 기본으로 'WeaponSocket01' 클래스 무기 액터 장착
+	FName WeaponSocket(TEXT("WeaponSocket01"));
+	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
+	{
+		// 'WeaponClass01' 클래스의 무기 액터 스폰
+		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass01, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (IsValid(WeaponInstance) == true)
+		{
+			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 		}
 	}
 }
@@ -126,11 +138,6 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ASPlayerCharacter::InputMove(const FInputActionValue& InValue)
 {
-	// 앉은 상태일 경우 풀기
-	if (bIsCrouched) {
-		UnCrouch();
-	}
-
 	// Input Action Value를 FVector2D(2차원) 형태로 해석하여 반환
 	FVector2D MovementVector = InValue.Get<FVector2D>();
 
@@ -175,38 +182,17 @@ void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 {
 	if (IsValid(WeaponInstance) == true)
 	{
-		// 무기 해제 시 사용할 Animation Layer 연결
-		TSubclassOf<UAnimInstance> UnarmedCharacterAnimLayer = WeaponInstance->GetUnarmedCharacterAnimLayer();
-		if (IsValid(UnarmedCharacterAnimLayer) == true)
-		{
-			GetMesh()->LinkAnimClassLayers(UnarmedCharacterAnimLayer);
-		}
-
-		// 무기 탈착 애니메이션 재생
-		USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetUnequipAnimMontage()))
-		{
-			AnimInstance->Montage_Play(WeaponInstance->GetUnequipAnimMontage());
-		}
-
-		// 장착한 무기 제거
-		WeaponInstance->Destroy();
-		WeaponInstance = nullptr;
-	}
-}
-
-void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
-{
-	if (IsValid(WeaponInstance) == true)
-	{
 		// 이미 'WeaponClass01' 클래스의 무기 액터 장착 시 return
 		if (WeaponInstance.GetClass() == WeaponClass01) {
 			return;
 		}
 
-		// 'WeaponClass02' 클래스의 무기 액터 장착 시 삭제
+		// 다른 클래스의 무기 액터 장착 시 삭제
 		WeaponInstance->Destroy();
 		WeaponInstance = nullptr;
+
+		// 연발 상태 해제
+		bIsTriggerToggle = false;
 	}
 
 	FName WeaponSocket(TEXT("WeaponSocket01"));
@@ -235,7 +221,7 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 {
 	if (IsValid(WeaponInstance) == true)
 	{
@@ -244,7 +230,7 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 			return;
 		}
 
-		// 'WeaponClass01' 클래스의 무기 액터 장착 시 삭제
+		// 다른 클래스의 무기 액터 장착 시 삭제
 		WeaponInstance->Destroy();
 		WeaponInstance = nullptr;
 	}
@@ -254,6 +240,49 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 	{
 		// 'WeaponClass02' 클래스의 무기 액터 스폰
 		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass02, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (IsValid(WeaponInstance) == true)
+		{
+			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+		}
+
+		// 라이플 무기 장착 시 사용할 Animation Layer 연결
+		TSubclassOf<UAnimInstance> RifleCharacterAnimLayer = WeaponInstance->GetRifleCharacterAnimLayer();
+		if (IsValid(RifleCharacterAnimLayer) == true)
+		{
+			GetMesh()->LinkAnimClassLayers(RifleCharacterAnimLayer);
+		}
+
+		// 무기 장착 애니메이션 재생
+		USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+		{
+			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
+		}
+	}
+}
+
+void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
+{
+	if (IsValid(WeaponInstance) == true)
+	{
+		// 이미 'WeaponClass03' 클래스의 무기 액터 장착 시 return
+		if (WeaponInstance.GetClass() == WeaponClass03) {
+			return;
+		}
+
+		// 다른 클래스의 무기 액터 장착 시 삭제
+		WeaponInstance->Destroy();
+		WeaponInstance = nullptr;
+
+		// 연발 상태 해제
+		bIsTriggerToggle = false;
+	}
+
+	FName WeaponSocket(TEXT("WeaponSocket03"));
+	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
+	{
+		// 'WeaponClass02' 클래스의 무기 액터 스폰
+		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass03, FVector::ZeroVector, FRotator::ZeroRotator);
 		if (IsValid(WeaponInstance) == true)
 		{
 			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
@@ -365,7 +394,9 @@ void ASPlayerCharacter::TryFire()
 		{
 			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 60.f, 0, 2.f);
 		}
+#pragma endregion
 
+#pragma region DamageEvent
 		// 사격 적중한 캐릭터 데미지 입히기
 		if (IsCollided == true)
 		{
@@ -373,23 +404,32 @@ void ASPlayerCharacter::TryFire()
 			if (IsValid(HittedCharacter) == true)
 			{
 				FDamageEvent DamageEvent;
-				HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+
+				// 무기 클래스별로 데미지 차이 두기
+				if (WeaponInstance.GetClass() == WeaponClass01) {
+					HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
+				}
+				else if (WeaponInstance.GetClass() == WeaponClass02) {
+					HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+				}
+				else {
+					HittedCharacter->TakeDamage(20.f, DamageEvent, GetController(), this);
+				}
 			}
 		}
 #pragma endregion
-
 	}
 }
 
 void ASPlayerCharacter::ZoomIn(const FInputActionValue& InValue)
 {
-	// 무기를 장착하지 않았을 때 줌인 막기
-	if (IsValid(WeaponInstance) == false) {
+	// 'WeaponClass03' 클래스 무기가 아니면 줌인 막기
+	if (WeaponInstance.GetClass() != WeaponClass03) {
 		return;
 	}
 
 	// 목표 FOV 값 감소 -> 줌인
-	TargetFOV = 45.f;
+	TargetFOV = 30.f;
 }
 
 void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
@@ -400,6 +440,11 @@ void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
 
 void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
 {
+	// 'WeaponClass02' 클래스 무기가 아니면 연발 막기
+	if (WeaponInstance.GetClass() != WeaponClass02) {
+		return;
+	}
+	
 	// 속성값 반전
 	bIsTriggerToggle = !bIsTriggerToggle;
 }

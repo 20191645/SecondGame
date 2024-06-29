@@ -20,14 +20,12 @@ public:
 	// 'Mesh' Getter 함수
 	USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
-	// 'UnarmedCharacterAnimLayer, PistolCharacterAnimLayer, RifleCharacterAnimLayer' Getter 함수
-	TSubclassOf<UAnimInstance> GetUnarmedCharacterAnimLayer() const { return UnarmedCharacterAnimLayer; }
+	// 'PistolCharacterAnimLayer, RifleCharacterAnimLayer' Getter 함수
 	TSubclassOf<UAnimInstance> GetPistolCharacterAnimLayer() const { return PistolCharacterAnimLayer; }
 	TSubclassOf<UAnimInstance> GetRifleCharacterAnimLayer() const { return RifleCharacterAnimLayer; }
 
-	// 'EquipAnimMontage, UnequipAnimMontage' Getter 함수
+	// 'EquipAnimMontage' Getter 함수
 	UAnimMontage* GetEquipAnimMontage() const { return EquipAnimMontage; }
-	UAnimMontage* GetUnequipAnimMontage() const { return UnequipAnimMontage; }
 
 	// 'MaxRange' Getter 함수
 	float GetMaxRange() const { return MaxRange; }
@@ -37,9 +35,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
-	// 무기 해제 시 사용할 Animation Layer
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASWeaponActor|AnimLayer", meta = (AllowPrivateAccess))
-	TSubclassOf<UAnimInstance> UnarmedCharacterAnimLayer;
 	// 피스톨 무기 장착 시 사용할 Animation Layer
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASWeaponActor|AnimLayer", meta = (AllowPrivateAccess))
 	TSubclassOf<UAnimInstance> PistolCharacterAnimLayer;
@@ -50,9 +45,6 @@ protected:
 	// 무기 장착 애니메이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UAnimMontage> EquipAnimMontage;
-	// 무기 탈착 애니메이션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	TObjectPtr<UAnimMontage> UnequipAnimMontage;
 
 	// 공격 최대 사거리 (단위: cm)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess, Units = cm))

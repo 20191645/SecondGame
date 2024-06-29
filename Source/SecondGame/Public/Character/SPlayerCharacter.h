@@ -87,12 +87,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float RightInputValue;
 
-	// 무기 액터1 클래스 정보 -- 'Pistols_A'
+	// 무기 액터1 클래스 정보 -- 'Pistols_A' -- 줌X, 연발X
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TSubclassOf<ASWeaponActor> WeaponClass01;
-	// 무기 액터2 클래스 정보 -- 'Assault_Rifle_A'
+	// 무기 액터2 클래스 정보 -- 'Assault_Rifle_A' -- 줌X, 연발O
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TSubclassOf<ASWeaponActor> WeaponClass02;
+	// 무기 액터3 클래스 정보 -- 'Sniper_Rifle_A' -- 줌O, 연발X
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TSubclassOf<ASWeaponActor> WeaponClass03;
 	// 무기 액터 개체
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<ASWeaponActor> WeaponInstance;
