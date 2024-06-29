@@ -13,6 +13,9 @@ public class SecondGame : ModuleRules
 			
 			// Enhanced Input
 			"EnhancedInput",
+
+			// UI
+			"UMG",
 		});
 	}
 }

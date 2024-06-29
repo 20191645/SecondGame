@@ -29,6 +29,9 @@ public:
 	UAnimMontage* GetEquipAnimMontage() const { return EquipAnimMontage; }
 	UAnimMontage* GetUnequipAnimMontage() const { return UnequipAnimMontage; }
 
+	// 'MaxRange' Getter 함수
+	float GetMaxRange() const { return MaxRange; }
+
 protected:
 	// 무기 아이템이 사용할 Mesh 정보
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -50,4 +53,8 @@ protected:
 	// 무기 탈착 애니메이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UAnimMontage> UnequipAnimMontage;
+
+	// 공격 최대 사거리 (단위: cm)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess, Units = cm))
+	float MaxRange = 25000.f;
 };

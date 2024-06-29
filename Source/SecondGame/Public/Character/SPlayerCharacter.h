@@ -27,6 +27,8 @@ public:
 	float GetForwardInputValue() const { return ForwardInputValue; }
 	float GetRightInputValue() const { return RightInputValue; }
 
+	virtual void Tick(float DeltaSeconds) override;
+
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -45,6 +47,24 @@ private:
 
 	// 'IA_Crouch' 입력에 대응하는 함수
 	void InputCrouch(const FInputActionValue& InValue);
+
+	// 'IA_Attack' 입력에 대응하는 함수
+	void InputAttack(const FInputActionValue& InValue);
+
+	// 단발 사격 함수
+	void TryFire();
+
+	// 'IA_Zoom' 입력 순간에 대응하는 줌인 함수
+	void ZoomIn(const FInputActionValue& InValue);
+	// 'IA_Zoom' 입력 끝에 대응하는 줌인 함수
+	void ZoomOut(const FInputActionValue& InValue);
+
+	// 'IA_Trigger' 입력에 대응하는 함수
+	void ToggleTrigger(const FInputActionValue& InValue);
+	// 'IA_Attack' 입력 순간에 대응하는 함수
+	void StartFire(const FInputActionValue& InValue);
+	// 'IA_Attack' 입력 끝에 대응하는 함수
+	void StopFire(const FInputActionValue& InValue);
 
 protected:
 	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트 - 카메라 봉 길이, 컴포넌트 회전 설정
@@ -76,4 +96,19 @@ protected:
 	// 무기 액터 개체
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<ASWeaponActor> WeaponInstance;
+
+	// 목표 FOV 값
+	float TargetFOV = 70.f;
+	// 현재 FOV 값
+	float CurrentFOV = 70.f;
+
+	// 연발 사격 시 분당 사격 횟수
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	float FirePerMinute = 600;
+	// 'IA_Trigger' 입력 시 값 반전 -- 단발/연발 토글링
+	bool bIsTriggerToggle = false;
+	// 연발 사격 타이머
+	FTimerHandle BetweenShotsTimer;
+	// 연발 사격 시간 간격
+	float TimeBetweenFire;
 };

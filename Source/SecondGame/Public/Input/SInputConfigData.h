@@ -41,4 +41,16 @@ public:
 	// 'IA_Crouch'에 대응하는 속성
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInputAction> Crouch;
+
+	// 'IA_Attack'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> Attack;
+
+	// 'IA_Zoom'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> Zoom;
+
+	// 'IA_Trigger'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> Trigger;
 };
