@@ -12,6 +12,7 @@ class UCameraComponent;
 class USInputConfigData;
 class UInputMappingContext;
 class ASWeaponActor;
+class UCameraShakeBase;
 
 UCLASS()
 class SECONDGAME_API ASPlayerCharacter : public ASCharacter
@@ -32,6 +33,10 @@ public:
 	// 'CurrentAimPitch, CurrentAimYaw' Getter 함수
 	float GetCurrentAimPitch() const { return CurrentAimPitch; }
 	float GetCurrentAimYaw() const { return CurrentAimYaw; }
+
+	// 'OnFireEffect' 델리게이트에 바인드할 함수
+	UFUNCTION()
+	void OnFireEffect();
 
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -111,7 +116,7 @@ protected:
 
 	// 연발 사격 시 분당 사격 횟수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	float FirePerMinute = 240;
+	float FirePerMinute = 360;
 	// 'IA_Trigger' 입력 시 값 반전 -- 단발/연발 토글링
 	bool bIsTriggerToggle = false;
 	// 연발 사격 타이머
@@ -130,4 +135,11 @@ protected:
 	float CurrentAimPitch = 0.f;
 	// 현재 Yaw 방향 에임 값
 	float CurrentAimYaw = 0.f;
+
+	// 현재 QuickSlot 번호
+	int32 QuickSlotNumber;
+
+	// 카메라 흔들림 클래스 정보
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TSubclassOf<UCameraShakeBase> FireCameraShake;
 };

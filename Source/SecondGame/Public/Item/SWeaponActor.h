@@ -8,6 +8,7 @@
 
 class UAnimInstance;
 class UAnimMontage;
+class UParticleSystem;
 
 UCLASS()
 class SECONDGAME_API ASWeaponActor : public AActor
@@ -33,6 +34,9 @@ public:
 	// 'FireAnimMontage' Getter 함수
 	UAnimMontage* GetFireAnimMontage() const { return FireAnimMontage; }
 
+	// 'FireParticleSystem' Getter 함수
+	UParticleSystem* GetFireParticleSystem() const { return FireParticleSystem; }
+
 protected:
 	// 무기 아이템이 사용할 Mesh 정보
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -56,4 +60,8 @@ protected:
 	// 사격 애니메이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UAnimMontage> FireAnimMontage;
+
+	// 사격 효과
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UParticleSystem> FireParticleSystem;
 };

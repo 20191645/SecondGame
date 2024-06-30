@@ -8,6 +8,8 @@
 
 class UAnimMontage;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFireEffect);
+
 // 'LocomotionSM'의 State
 UENUM(BlueprintType)
 enum class ELocomotionState : uint8
@@ -47,6 +49,15 @@ public:
 	// 'LocomotionState, MovementDirection' Getter 함수
 	ELocomotionState GetLocomotionState() const { return LocomotionState; }
 	EMovementDirection GetMovementDirection() const { return MovementDirection; }
+
+protected:
+	// Notify 'FireEffect'가 배치된 프레임에 호출할 함수
+	UFUNCTION()
+	void AnimNotify_FireEffect();
+
+public:
+	// 'FOnFireEffect' 델리게이트
+	FOnFireEffect OnFireEffect;
 
 protected:
 	// 현재 캐릭터의 속력

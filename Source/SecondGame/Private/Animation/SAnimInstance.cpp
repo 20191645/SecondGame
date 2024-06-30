@@ -79,3 +79,13 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 	}
 }
+
+void USAnimInstance::AnimNotify_FireEffect()
+{
+	// 해당 델리게이트에 1개의 함수라도 바인드 되어 있다면 true를 반환
+	if (OnFireEffect.IsBound() == true)
+	{
+		// 델리게이트에 바인드된 함수들에게 Broadcast
+		OnFireEffect.Broadcast();
+	}
+}

@@ -13,6 +13,8 @@
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
 #include "Blueprint/UserWidget.h"
+#include "Particles/ParticleSystem.h"
+#include "Kismet/GameplayStatics.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -87,6 +89,9 @@ void ASPlayerCharacter::BeginPlay()
 		{
 			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 		}
+
+		// 퀵슬롯 번호 설정
+		QuickSlotNumber = 1;
 	}
 
 	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
@@ -94,6 +99,13 @@ void ASPlayerCharacter::BeginPlay()
 		SniperZoomUIInstance = CreateWidget<UUserWidget>(PlayerController, SniperZoomUIClass);
 		SniperZoomUIInstance->AddToViewport(0);
 		SniperZoomUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+	if (IsValid(AnimInstance) == true)
+	{
+		// 'OnFireEffect' 델리게이트에 OnFireEffect() 함수 바인드
+		AnimInstance->OnFireEffect.AddDynamic(this, &ThisClass::OnFireEffect);
 	}
 }
 
@@ -111,6 +123,38 @@ void ASPlayerCharacter::Tick(float DeltaSeconds)
 		FRotator ControlRotation = GetController()->GetControlRotation();
 		CurrentAimPitch = ControlRotation.Pitch;
 		CurrentAimYaw = ControlRotation.Yaw;
+	}
+}
+
+void ASPlayerCharacter::OnFireEffect()
+{
+	FName WeaponSocket(TEXT("WeaponSocket01"));
+	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == true)
+	{
+		FRotator ParticleRotation(75.f, 0.f, 0.f);
+		// 무기 클래스에 따라 WeaponSocket에서 총구까지의 거리 적용
+		FVector ParticleLocation;
+		switch (QuickSlotNumber) {
+		case 1:
+			ParticleLocation = FVector(-10.f, 20.f, 5.f);
+			break;
+		case 2:
+			ParticleLocation = FVector(-15.f, 65.f, 20.f);
+			break;
+		case 3:
+			ParticleLocation = FVector(-10.f, 70.f, 20.f);
+			break;
+		}
+		
+		// 'FireParticleSystem' 효과 재생
+		UGameplayStatics::SpawnEmitterAttached(
+			WeaponInstance->GetFireParticleSystem(),
+			GetMesh(),
+			WeaponSocket,
+			ParticleLocation,
+			ParticleRotation,
+			(FVector)(0.5f)
+		);
 	}
 }
 
@@ -199,7 +243,7 @@ void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass01' 클래스의 무기 액터 장착 시 return
-		if (WeaponInstance.GetClass() == WeaponClass01) {
+		if (QuickSlotNumber == 1) {
 			return;
 		}
 
@@ -234,6 +278,9 @@ void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
 		}
+
+		// 퀵슬롯 번호 설정
+		QuickSlotNumber = 1;
 	}
 }
 
@@ -242,7 +289,7 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass02' 클래스의 무기 액터 장착 시 return
-		if (WeaponInstance.GetClass() == WeaponClass02) {
+		if (QuickSlotNumber == 2) {
 			return;
 		}
 
@@ -274,6 +321,9 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
 		}
+
+		// 퀵슬롯 번호 설정
+		QuickSlotNumber = 2;
 	}
 }
 
@@ -282,7 +332,7 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass03' 클래스의 무기 액터 장착 시 return
-		if (WeaponInstance.GetClass() == WeaponClass03) {
+		if (QuickSlotNumber == 3) {
 			return;
 		}
 
@@ -317,6 +367,9 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
 		}
+
+		// 퀵슬롯 번호 설정
+		QuickSlotNumber = 3;
 	}
 }
 
@@ -422,25 +475,32 @@ void ASPlayerCharacter::TryFire()
 				FDamageEvent DamageEvent;
 
 				// 무기 클래스별로 데미지 차이 두기
-				if (WeaponInstance.GetClass() == WeaponClass01) {
+				switch (QuickSlotNumber) {
+				case 1:
 					HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
-				}
-				else if (WeaponInstance.GetClass() == WeaponClass02) {
+					break;
+				case 2:
 					HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
-				}
-				else {
+					break;
+				case 3:
 					HittedCharacter->TakeDamage(20.f, DamageEvent, GetController(), this);
+					break;
 				}
 			}
 		}
 #pragma endregion
 
-#pragma region MontagePlay
+#pragma region Fire
 		// 사격 애니메이션 재생
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance) == true)
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
+		}
+
+		// 카메라 흔들림 적용
+		if (IsValid(FireCameraShake)) {
+			PlayerController->ClientStartCameraShake(FireCameraShake);
 		}
 #pragma endregion
 
@@ -450,7 +510,7 @@ void ASPlayerCharacter::TryFire()
 void ASPlayerCharacter::ZoomIn(const FInputActionValue& InValue)
 {
 	// 'WeaponClass03' 클래스 무기가 아니면 줌인 막기
-	if (WeaponInstance.GetClass() != WeaponClass03) {
+	if (QuickSlotNumber != 3) {
 		return;
 	}
 
@@ -479,7 +539,7 @@ void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
 void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
 {
 	// 'WeaponClass02' 클래스 무기가 아니면 연발 막기
-	if (WeaponInstance.GetClass() != WeaponClass02) {
+	if (QuickSlotNumber != 2) {
 		return;
 	}
 
