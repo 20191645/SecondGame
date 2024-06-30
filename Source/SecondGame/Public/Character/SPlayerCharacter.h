@@ -75,6 +75,9 @@ private:
 	// 'IA_Attack' 입력 끝에 대응하는 함수
 	void StopFire(const FInputActionValue& InValue);
 
+	// 'IA_Reload' 입력에 대응하는 함수
+	void InputReload(const FInputActionValue& InValue);
+
 protected:
 	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트 - 카메라 봉 길이, 컴포넌트 회전 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -136,10 +139,13 @@ protected:
 	// 현재 Yaw 방향 에임 값
 	float CurrentAimYaw = 0.f;
 
-	// 현재 QuickSlot 번호
-	int32 QuickSlotNumber;
+	// 현재 무기 클래스 번호
+	int32 WeaponClassNumber;
 
 	// 카메라 흔들림 클래스 정보
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TSubclassOf<UCameraShakeBase> FireCameraShake;
+
+	// 무기별 총알 개수
+	TArray<int32> BulletCount = { 15, 30, 5 };
 };

@@ -37,6 +37,9 @@ public:
 	// 'FireParticleSystem' Getter 함수
 	UParticleSystem* GetFireParticleSystem() const { return FireParticleSystem; }
 
+	// 'ReloadAnimMontage' Getter 함수
+	UAnimMontage* GetReloadAnimMontage() const { return ReloadAnimMontage; }
+
 protected:
 	// 무기 아이템이 사용할 Mesh 정보
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -64,4 +67,8 @@ protected:
 	// 사격 효과
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UParticleSystem> FireParticleSystem;
+
+	// 총알 장전 애니메이션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UAnimMontage> ReloadAnimMontage;
 };

@@ -90,8 +90,8 @@ void ASPlayerCharacter::BeginPlay()
 			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 		}
 
-		// 퀵슬롯 번호 설정
-		QuickSlotNumber = 1;
+		// 현재 무기 클래스 번호 설정
+		WeaponClassNumber = 1;
 	}
 
 	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
@@ -134,7 +134,7 @@ void ASPlayerCharacter::OnFireEffect()
 		FRotator ParticleRotation(75.f, 0.f, 0.f);
 		// 무기 클래스에 따라 WeaponSocket에서 총구까지의 거리 적용
 		FVector ParticleLocation;
-		switch (QuickSlotNumber) {
+		switch (WeaponClassNumber) {
 		case 1:
 			ParticleLocation = FVector(-10.f, 20.f, 5.f);
 			break;
@@ -147,14 +147,16 @@ void ASPlayerCharacter::OnFireEffect()
 		}
 		
 		// 'FireParticleSystem' 효과 재생
-		UGameplayStatics::SpawnEmitterAttached(
-			WeaponInstance->GetFireParticleSystem(),
-			GetMesh(),
-			WeaponSocket,
-			ParticleLocation,
-			ParticleRotation,
-			(FVector)(0.5f)
-		);
+		if (IsValid(WeaponInstance->GetFireParticleSystem())) {
+			UGameplayStatics::SpawnEmitterAttached(
+				WeaponInstance->GetFireParticleSystem(),
+				GetMesh(),
+				WeaponSocket,
+				ParticleLocation,
+				ParticleRotation,
+				(FVector)(0.5f)
+			);
+		}
 	}
 }
 
@@ -192,7 +194,8 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Attack, ETriggerEvent::Started, this, &ThisClass::StartFire);
 		// Attack('IA_Attack')을 컴플릿 상태에서 StopFire() 함수와 바인드
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Attack, ETriggerEvent::Completed, this, &ThisClass::StopFire);
-
+		// Reload('IA_Reload')을 스타트 상태에서 InputReload() 함수와 바인드
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Reload, ETriggerEvent::Started, this, &ThisClass::InputReload);
 	}
 }
 
@@ -240,10 +243,17 @@ void ASPlayerCharacter::InputLook(const FInputActionValue& InValue)
 
 void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 {
+	// 총알 장전 애니메이션 재생 중이면 return
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) == false ||
+		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
+		return;
+	}
+	
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass01' 클래스의 무기 액터 장착 시 return
-		if (QuickSlotNumber == 1) {
+		if (WeaponClassNumber == 1) {
 			return;
 		}
 
@@ -273,23 +283,29 @@ void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 		}
 
 		// 무기 장착 애니메이션 재생
-		USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+		if (IsValid(WeaponInstance->GetEquipAnimMontage()))
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
 		}
 
-		// 퀵슬롯 번호 설정
-		QuickSlotNumber = 1;
+		// 현재 무기 클래스 번호 수정
+		WeaponClassNumber = 1;
 	}
 }
 
 void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 {
+	// 총알 장전 애니메이션 재생 중이면 return
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) == false ||
+		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
+		return;
+	}
+
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass02' 클래스의 무기 액터 장착 시 return
-		if (QuickSlotNumber == 2) {
+		if (WeaponClassNumber == 2) {
 			return;
 		}
 
@@ -316,23 +332,29 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 		}
 
 		// 무기 장착 애니메이션 재생
-		USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+		if (IsValid(WeaponInstance->GetEquipAnimMontage()))
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
 		}
 
-		// 퀵슬롯 번호 설정
-		QuickSlotNumber = 2;
+		// 현재 무기 클래스 번호 수정
+		WeaponClassNumber = 2;
 	}
 }
 
 void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 {
+	// 총알 장전 애니메이션 재생 중이면 return
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) == false ||
+		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
+		return;
+	}
+
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass03' 클래스의 무기 액터 장착 시 return
-		if (QuickSlotNumber == 3) {
+		if (WeaponClassNumber == 3) {
 			return;
 		}
 
@@ -362,14 +384,13 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 		}
 
 		// 무기 장착 애니메이션 재생
-		USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+		if (IsValid(WeaponInstance->GetEquipAnimMontage()))
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
 		}
 
-		// 퀵슬롯 번호 설정
-		QuickSlotNumber = 3;
+		// 현재 무기 클래스 번호 수정
+		WeaponClassNumber = 3;
 	}
 }
 
@@ -402,6 +423,19 @@ void ASPlayerCharacter::TryFire()
 {
 	APlayerController* PlayerController = GetController<APlayerController>();
 	if (IsValid(PlayerController) == true && IsValid(WeaponInstance) == true) {
+		// 총알 장전 애니메이션 재생 중이면 return
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) == false ||
+			AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
+			 return;
+		}
+		
+		// 총알 유무 확인
+		if (BulletCount[WeaponClassNumber - 1] == 0) {
+			return;
+		}
+		// 총알 사용
+		--BulletCount[WeaponClassNumber - 1];
 
 #pragma region CaculateTargetTransform
 		// FocalDistance: 초점 거리 (SpringArmLength와 비슷한 값)
@@ -475,7 +509,7 @@ void ASPlayerCharacter::TryFire()
 				FDamageEvent DamageEvent;
 
 				// 무기 클래스별로 데미지 차이 두기
-				switch (QuickSlotNumber) {
+				switch (WeaponClassNumber) {
 				case 1:
 					HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
 					break;
@@ -492,8 +526,7 @@ void ASPlayerCharacter::TryFire()
 
 #pragma region Fire
 		// 사격 애니메이션 재생
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance) == true)
+		if (IsValid(WeaponInstance->GetFireAnimMontage()))
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
 		}
@@ -510,7 +543,7 @@ void ASPlayerCharacter::TryFire()
 void ASPlayerCharacter::ZoomIn(const FInputActionValue& InValue)
 {
 	// 'WeaponClass03' 클래스 무기가 아니면 줌인 막기
-	if (QuickSlotNumber != 3) {
+	if (WeaponClassNumber != 3) {
 		return;
 	}
 
@@ -539,7 +572,7 @@ void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
 void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
 {
 	// 'WeaponClass02' 클래스 무기가 아니면 연발 막기
-	if (QuickSlotNumber != 2) {
+	if (WeaponClassNumber != 2) {
 		return;
 	}
 
@@ -560,4 +593,32 @@ void ASPlayerCharacter::StopFire(const FInputActionValue& InValue)
 {
 	// 연발 사격 타이머 클리어
 	GetWorldTimerManager().ClearTimer(BetweenShotsTimer);
+}
+
+void ASPlayerCharacter::InputReload(const FInputActionValue& InValue)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	// 총알 장전 애니메이션 재생 중이면 return
+	if (IsValid(AnimInstance) == false ||
+		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
+		return;
+	}
+	// 총알 장전 애니메이션 재생
+	if (IsValid(WeaponInstance->GetReloadAnimMontage()) == true)
+	{
+		AnimInstance->Montage_Play(WeaponInstance->GetReloadAnimMontage());
+	}
+
+	// 무기 클래스에 따라 총알 개수 장전
+	switch (WeaponClassNumber) {
+	case 1:
+		BulletCount[WeaponClassNumber - 1] = 15;
+		break;
+	case 2:
+		BulletCount[WeaponClassNumber - 1] = 30;
+		break;
+	case 3:
+		BulletCount[WeaponClassNumber - 1] = 5;
+		break;
+	}
 }
