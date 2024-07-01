@@ -18,7 +18,7 @@ public:
 	ASCharacter();
 
 	// 'StatComponent' Getter ÇÔ¼ö
-	USStatComponent* GetStatCompoennt() const { return StatComponent; }
+	USStatComponent* GetStatComponent() const { return StatComponent; }
 
 	virtual void BeginPlay() override;
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;

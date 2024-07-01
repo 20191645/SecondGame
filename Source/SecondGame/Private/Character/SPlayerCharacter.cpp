@@ -16,6 +16,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Component/SStatComponent.h"
+#include "Game/SPlayerState.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -98,7 +99,7 @@ void ASPlayerCharacter::BeginPlay()
 	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
 	if (IsValid(SniperZoomUIClass) == true) {
 		SniperZoomUIInstance = CreateWidget<UUserWidget>(PlayerController, SniperZoomUIClass);
-		SniperZoomUIInstance->AddToViewport(0);
+		SniperZoomUIInstance->AddToViewport(1);
 		SniperZoomUIInstance->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
@@ -159,6 +160,38 @@ void ASPlayerCharacter::OnFireEffect()
 			);
 		}
 	}
+}
+
+float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float FinialDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// 플레이어 캐릭터 죽음
+	if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+	{
+		// 플레이어 캐릭터를 죽인 플레이어의 'CurrentKillCount' 값 증가
+		// -> NPC 캐릭터에게 죽으면 영향X
+		ASPlayerCharacter* DamageCauserCharacter = Cast<ASPlayerCharacter>(DamageCauser);
+		if (IsValid(DamageCauserCharacter) == true)
+		{
+			ASPlayerState* DCCPlayerState = Cast<ASPlayerState>(DamageCauserCharacter->GetPlayerState());
+			if (IsValid(DCCPlayerState) == true)
+			{
+				DCCPlayerState->AddCurrentKillCount(1);
+			}
+
+		}
+
+		// 플레이어의 'CurrentDeathCount' 값 증가
+		// -> 죽은 이유 관계없이 무조건 증가
+		ASPlayerState* SPlayerState = Cast<ASPlayerState>(GetPlayerState());
+		if (IsValid(SPlayerState) == true)
+		{
+			SPlayerState->AddCurrentDeathCount(1);
+		}
+	}
+
+	return FinialDamageAmount;
 }
 
 void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

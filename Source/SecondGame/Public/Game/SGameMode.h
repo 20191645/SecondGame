@@ -13,4 +13,7 @@ class SECONDGAME_API ASGameMode : public AGameModeBase
 	
 public:
 	ASGameMode();
+
+	// 플레이어가 게임에 입장한 후 호출될 함수
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };
