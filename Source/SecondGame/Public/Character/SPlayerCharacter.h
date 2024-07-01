@@ -79,7 +79,7 @@ private:
 	void InputReload(const FInputActionValue& InValue);
 
 protected:
-	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트 - 카메라 봉 길이, 컴포넌트 회전 설정
+	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	// CameraComponenet: 가상 세계 모습을 플레이어 화면에 전송하는 컴포넌트
@@ -108,7 +108,7 @@ protected:
 	// 무기 액터3 클래스 정보 -- 'Sniper_Rifle_A' -- 줌O, 연발X
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TSubclassOf<ASWeaponActor> WeaponClass03;
-	// 무기 액터 개체
+	// 무기 액터 객체
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<ASWeaponActor> WeaponInstance;
 
@@ -130,7 +130,7 @@ protected:
 	// 줌 위젯 클래스 정보
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> SniperZoomUIClass;
-	// 줌 위젯 개체
+	// 줌 위젯 객체
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<UUserWidget> SniperZoomUIInstance;
 

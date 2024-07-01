@@ -15,6 +15,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Component/SStatComponent.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -201,6 +202,12 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ASPlayerCharacter::InputMove(const FInputActionValue& InValue)
 {
+	// 캐릭터 죽음 시 이동 막기
+	if (GetCharacterMovement()->GetGroundMovementMode() == MOVE_None || StatComponent->GetCurrentHP() <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+	
 	// Input Action Value를 FVector2D(2차원) 형태로 해석하여 반환
 	FVector2D MovementVector = InValue.Get<FVector2D>();
 
@@ -231,6 +238,12 @@ void ASPlayerCharacter::InputMove(const FInputActionValue& InValue)
 
 void ASPlayerCharacter::InputLook(const FInputActionValue& InValue)
 {
+	// 캐릭터 죽음 시 시점 막기
+	if (GetCharacterMovement()->GetGroundMovementMode() == MOVE_None || StatComponent->GetCurrentHP() <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
 	if (IsValid(GetController()) == true)
 	{
 		FVector2D LookVector = InValue.Get<FVector2D>();

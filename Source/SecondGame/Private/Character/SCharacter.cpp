@@ -3,6 +3,8 @@
 #include "Character/SCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Component/SStatComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 ASCharacter::ASCharacter()
 {
@@ -30,4 +32,45 @@ ASCharacter::ASCharacter()
     GetCharacterMovement()->AirControl = 0.35f;
     // BrakingDecelerationWalking: 움직임을 멈췄을 때 멈추는 속도
     GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+
+    // 'StatComponent' 오브젝트 생성
+    StatComponent = CreateDefaultSubobject<USStatComponent>(TEXT("StatComponent"));
+}
+
+void ASCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // 'OnOutOfCurrentHPDelegate'에 OnCharacterDeath() 함수 바인드
+    if (IsValid(StatComponent) == true && StatComponent->OnOutOfCurrentHPDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterDeath) == false)
+    {
+        StatComponent->OnOutOfCurrentHPDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
+    }
+}
+
+void ASCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    // 'OnOutOfCurrentHPDelegate'에 OnCharacterDeath() 함수 언바인드
+    if (true == StatComponent->OnOutOfCurrentHPDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterDeath))
+    {
+        StatComponent->OnOutOfCurrentHPDelegate.RemoveDynamic(this, &ThisClass::OnCharacterDeath);
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
+float ASCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    // 'CurrentHP' 수정
+    StatComponent->SetCurrentHP(StatComponent->GetCurrentHP() - FinalDamageAmount);
+
+    return FinalDamageAmount;
+}
+
+void ASCharacter::OnCharacterDeath()
+{
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 }
