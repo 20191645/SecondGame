@@ -557,13 +557,20 @@ void ASPlayerCharacter::TryFire()
 				// 무기 클래스별로 데미지 차이 두기
 				switch (WeaponClassNumber) {
 				case 1:
-					HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
-					break;
-				case 2:
 					HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
 					break;
+				case 2:
+					HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
+					break;
 				case 3:
-					HittedCharacter->TakeDamage(20.f, DamageEvent, GetController(), this);
+					// 줌인 상태 데미지: 30
+					if (SniperZoomUIInstance->GetVisibility() == ESlateVisibility::Visible) {
+						HittedCharacter->TakeDamage(30.f, DamageEvent, GetController(), this);
+					}
+					// 줌아웃 상태 데미지: 5
+					else {
+						HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
+					}
 					break;
 				}
 			}
