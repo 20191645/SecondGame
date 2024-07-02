@@ -88,4 +88,8 @@ protected:
 	// 컨트롤 로테이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SAnimInstance", meta = (AllowPrivateAccess = true))
 	FRotator ControlRotation;
+
+	// 캐릭터가 현재 죽었는지
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SAnimInstance", meta = (AllowPrivateAccess))
+	uint8 bIsDead : 1;
 };

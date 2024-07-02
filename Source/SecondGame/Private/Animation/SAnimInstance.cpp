@@ -3,6 +3,7 @@
 #include "Animation/SAnimInstance.h"
 #include "Character/SPlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Component/SStatComponent.h"
 
 USAnimInstance::USAnimInstance()
 {
@@ -18,6 +19,7 @@ void USAnimInstance::NativeInitializeAnimation()
 	bIsFalling = false;
 	bIsCrouching = false;
 	Acceleration = FVector::ZeroVector;
+	bIsDead = false;
 }
 
 void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -37,6 +39,7 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			bIsFalling = CharacterMovementComponent->IsFalling();
 			bIsCrouching = CharacterMovementComponent->IsCrouching();
 			Acceleration = CharacterMovementComponent->GetCurrentAcceleration();
+			bIsDead = OwnerCharacter->GetStatComponent()->GetCurrentHP() <= KINDA_SMALL_NUMBER;
 
 			// 'LocomotionState'ÀÇ State ¼³Á¤
 			if (Acceleration.Length() < KINDA_SMALL_NUMBER && Velocity.Length() < KINDA_SMALL_NUMBER)

@@ -142,6 +142,7 @@ protected:
 	float CurrentAimYaw = 0.f;
 
 	// 현재 무기 클래스 번호
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	int32 WeaponClassNumber;
 
 	// 카메라 흔들림 클래스 정보
@@ -150,4 +151,8 @@ protected:
 
 	// 무기별 총알 개수
 	TArray<int32> BulletCount = { 15, 30, 5 };
+
+	// 피격 애니메이션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UAnimMontage> HitReactAnimMontage;
 };

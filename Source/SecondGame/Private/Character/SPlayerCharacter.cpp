@@ -97,10 +97,12 @@ void ASPlayerCharacter::BeginPlay()
 	}
 
 	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
-	if (IsValid(SniperZoomUIClass) == true) {
+	if (IsValid(PlayerController) == true && IsValid(SniperZoomUIClass) == true) {
 		SniperZoomUIInstance = CreateWidget<UUserWidget>(PlayerController, SniperZoomUIClass);
-		SniperZoomUIInstance->AddToViewport(1);
-		SniperZoomUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+		if (IsValid(SniperZoomUIInstance) == true) {
+			SniperZoomUIInstance->AddToViewport();
+			SniperZoomUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 
 	USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
@@ -188,6 +190,15 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		if (IsValid(SPlayerState) == true)
 		{
 			SPlayerState->AddCurrentDeathCount(1);
+		}
+	}
+	// 피격 상태
+	else {
+		// 피격 애니메이션 재생
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) && IsValid(HitReactAnimMontage))
+		{
+			AnimInstance->Montage_Play(HitReactAnimMontage);
 		}
 	}
 
@@ -534,15 +545,17 @@ void ASPlayerCharacter::TryFire()
 			HitResult.TraceEnd = EndLocation;
 		}
 
-		// 충돌 탐지 거리 디버그 드로잉 <- 개발 완료 시 주석 처리
-		if (IsCollided == true)
-		{
-			DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 60.f, 0, 2.f);
-		}
-		else
-		{
-			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 60.f, 0, 2.f);
-		}
+		/*
+			// 충돌 탐지 거리 디버그 드로잉
+			if (IsCollided == true)
+			{
+				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 60.f, 0, 2.f);
+			}
+			else
+			{
+				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 60.f, 0, 2.f);
+			}
+		*/
 #pragma endregion
 
 #pragma region DamageEvent
@@ -554,25 +567,34 @@ void ASPlayerCharacter::TryFire()
 			{
 				FDamageEvent DamageEvent;
 
+				// 사격 적중한 캐릭터에게 최종적으로 적용될 데미지
+				float HitDamage = 0.f;
 				// 무기 클래스별로 데미지 차이 두기
 				switch (WeaponClassNumber) {
-				case 1:
-					HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
-					break;
-				case 2:
-					HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
-					break;
+				case 1: HitDamage = 10.f; break;
+				case 2: HitDamage = 5.f; break;
 				case 3:
 					// 줌인 상태 데미지: 30
 					if (SniperZoomUIInstance->GetVisibility() == ESlateVisibility::Visible) {
-						HittedCharacter->TakeDamage(30.f, DamageEvent, GetController(), this);
+						HitDamage = 30.f;
 					}
 					// 줌아웃 상태 데미지: 5
 					else {
-						HittedCharacter->TakeDamage(5.f, DamageEvent, GetController(), this);
+						HitDamage = 5.f;
 					}
 					break;
 				}
+
+				// 헤드샷 적중 시 데미지 2배 적용
+				FString BoneNameString = HitResult.BoneName.ToString();
+				if (true == BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
+				{
+					HitDamage *= 2;
+				}
+
+				UKismetSystemLibrary::PrintString(this, BoneNameString);
+				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f"), HitDamage));
+				HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
 			}
 		}
 #pragma endregion

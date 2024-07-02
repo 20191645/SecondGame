@@ -71,6 +71,6 @@ float ASCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 
 void ASCharacter::OnCharacterDeath()
 {
-    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 }
