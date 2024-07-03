@@ -89,7 +89,7 @@ void ASPlayerCharacter::BeginPlay()
 		}
 	}
 
-	// 게임 시작 시 기본으로 'WeaponSocket01' 클래스 무기 액터 장착
+	// 게임 시작 시 'WeaponSocket'에 'WeaponClass01' 클래스 무기 액터 장착
 	FName WeaponSocket(TEXT("WeaponSocket01"));
 	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
 	{
