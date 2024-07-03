@@ -17,6 +17,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Component/SStatComponent.h"
 #include "Game/SPlayerState.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Game/SGameMode.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -62,6 +64,12 @@ ASPlayerCharacter::ASPlayerCharacter()
 
 	// 연발 사격 시간 간격 초기화
 	TimeBetweenFire = 60.f / FirePerMinute;
+
+	// ParticleSystemComponent 오브젝트 할당
+	RespawnParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("RespawnParticleSystemComponent"));
+	RespawnParticleSystemComponent->SetupAttachment(GetRootComponent());
+	// Particle을 터트리지 않는다 [false]
+	RespawnParticleSystemComponent->SetAutoActivate(false);
 }
 
 void ASPlayerCharacter::BeginPlay()
@@ -181,15 +189,6 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 			{
 				DCCPlayerState->AddCurrentKillCount(1);
 			}
-
-		}
-
-		// 플레이어의 'CurrentDeathCount' 값 증가
-		// -> 죽은 이유 관계없이 무조건 증가
-		ASPlayerState* SPlayerState = Cast<ASPlayerState>(GetPlayerState());
-		if (IsValid(SPlayerState) == true)
-		{
-			SPlayerState->AddCurrentDeathCount(1);
 		}
 	}
 	// 피격 상태
@@ -244,14 +243,85 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	}
 }
 
+void ASPlayerCharacter::OnCharacterDeath()
+{
+	// 'SCharacter' 클래스의 OnCharacterDeath() 함수 실행
+	Super::OnCharacterDeath();
+
+	// 플레이어의 'CurrentDeathCount' 값 증가
+	// -> 죽은 이유 관계없이 무조건 증가
+	ASPlayerState* SPlayerState = Cast<ASPlayerState>(GetPlayerState());
+	if (IsValid(SPlayerState) == true)
+	{
+		SPlayerState->AddCurrentDeathCount(1);
+	}
+
+	// 줌아웃
+	ZoomOut();
+
+	// 현재 데스 수가 최대 데스 수보다 적으면 5초 후 리스폰
+	if (IsValid(SPlayerState) == true)
+	{
+		if (SPlayerState->GetCurrentDeathCount() < SPlayerState->GetMaxDeathCount()) {
+			FTimerHandle respawnTimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(respawnTimerHandle, FTimerDelegate::CreateLambda([&]()
+			{
+				Respawn();
+			}), 5.0f, false);
+		}
+		// 플레이어 패배
+		else {
+			UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("You Lose!!!")));
+		}
+	}
+}
+
+void ASPlayerCharacter::Respawn()
+{
+	// 캐릭터 충돌, 움직임 복구
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+	// 캐릭터 HP 회복
+	GetStatComponent()->SetCurrentHP(GetStatComponent()->GetMaxHP());
+
+	// 캐릭터 무기 클래스 초기화
+	InputQuickSlot01();
+
+	// 캐릭터 총알 회복
+	BulletCount[0] = 15;
+	BulletCount[1] = 30;
+	BulletCount[2] = 5;
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (IsValid(PlayerController)) {
+		// 캐릭터 입력 허용
+		EnableInput(PlayerController);
+
+		// 캐릭터 위치 이동
+		AGameModeBase* MyMode = Cast<AGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (IsValid(MyMode) == true) {
+			// 'PlayerStartTag' 이름
+			FString PlayerStartTag = "Player0";
+			AActor* StartSpot = MyMode->FindPlayerStart(PlayerController, PlayerStartTag);
+			SetActorLocationAndRotation(StartSpot->GetActorLocation(), StartSpot->GetActorRotation());
+		}
+	}
+
+	// 캐릭터 부활 이펙트 적용
+	RespawnParticleSystemComponent->ActivateSystem(true);
+
+	// 캐릭터 3초간 무적 상태
+	SetCanBeDamaged(false);
+	FTimerHandle damagedTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(damagedTimerHandle, FTimerDelegate::CreateLambda([&]()
+	{
+		SetCanBeDamaged(true);
+	}), 3.0f, false);
+}
+
 void ASPlayerCharacter::InputMove(const FInputActionValue& InValue)
 {
-	// 캐릭터 죽음 시 이동 막기
-	if (GetCharacterMovement()->GetGroundMovementMode() == MOVE_None || StatComponent->GetCurrentHP() <= KINDA_SMALL_NUMBER)
-	{
-		return;
-	}
-	
 	// Input Action Value를 FVector2D(2차원) 형태로 해석하여 반환
 	FVector2D MovementVector = InValue.Get<FVector2D>();
 
@@ -282,12 +352,6 @@ void ASPlayerCharacter::InputMove(const FInputActionValue& InValue)
 
 void ASPlayerCharacter::InputLook(const FInputActionValue& InValue)
 {
-	// 캐릭터 죽음 시 시점 막기
-	if (GetCharacterMovement()->GetGroundMovementMode() == MOVE_None || StatComponent->GetCurrentHP() <= KINDA_SMALL_NUMBER)
-	{
-		return;
-	}
-
 	if (IsValid(GetController()) == true)
 	{
 		FVector2D LookVector = InValue.Get<FVector2D>();
@@ -298,7 +362,7 @@ void ASPlayerCharacter::InputLook(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputQuickSlot01()
 {
 	// 총알 장전 애니메이션 재생 중이면 return
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -350,7 +414,7 @@ void ASPlayerCharacter::InputQuickSlot01(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputQuickSlot02()
 {
 	// 총알 장전 애니메이션 재생 중이면 return
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -399,7 +463,7 @@ void ASPlayerCharacter::InputQuickSlot02(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputQuickSlot03()
 {
 	// 총알 장전 애니메이션 재생 중이면 return
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -451,7 +515,7 @@ void ASPlayerCharacter::InputQuickSlot03(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::InputCrouch(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputCrouch()
 {
 	if (bIsCrouched) {
 		UnCrouch();
@@ -462,7 +526,7 @@ void ASPlayerCharacter::InputCrouch(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::InputAttack(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputAttack()
 {
 	// 캐릭터가 점프 중이면 공격 불가
 	if (GetCharacterMovement()->IsFalling() == true)
@@ -591,9 +655,8 @@ void ASPlayerCharacter::TryFire()
 				{
 					HitDamage *= 2;
 				}
-
-				UKismetSystemLibrary::PrintString(this, BoneNameString);
-				UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f"), HitDamage));
+				
+				UKismetSystemLibrary::PrintString(this, BoneNameString + FString::Printf(TEXT("%f"), HitDamage));
 				HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
 			}
 		}
@@ -615,10 +678,17 @@ void ASPlayerCharacter::TryFire()
 	}
 }
 
-void ASPlayerCharacter::ZoomIn(const FInputActionValue& InValue)
+void ASPlayerCharacter::ZoomIn()
 {
 	// 'WeaponClass03' 클래스 무기가 아니면 줌인 막기
 	if (WeaponClassNumber != 3) {
+		return;
+	}
+
+	// 총알 장전 애니메이션 재생 중이면 return
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) == false ||
+		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
 		return;
 	}
 
@@ -632,7 +702,7 @@ void ASPlayerCharacter::ZoomIn(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
+void ASPlayerCharacter::ZoomOut()
 {
 	// 목표 FOV 값 증가 -> 줌아웃
 	TargetFOV = 70.f;
@@ -644,7 +714,7 @@ void ASPlayerCharacter::ZoomOut(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
+void ASPlayerCharacter::ToggleTrigger()
 {
 	// 'WeaponClass02' 클래스 무기가 아니면 연발 막기
 	if (WeaponClassNumber != 2) {
@@ -655,7 +725,7 @@ void ASPlayerCharacter::ToggleTrigger(const FInputActionValue& InValue)
 	bIsTriggerToggle = !bIsTriggerToggle;
 }
 
-void ASPlayerCharacter::StartFire(const FInputActionValue& InValue)
+void ASPlayerCharacter::StartFire()
 {
 	// 연발 사격 타이머 세팅
 	if (bIsTriggerToggle == true)
@@ -664,20 +734,24 @@ void ASPlayerCharacter::StartFire(const FInputActionValue& InValue)
 	}
 }
 
-void ASPlayerCharacter::StopFire(const FInputActionValue& InValue)
+void ASPlayerCharacter::StopFire()
 {
 	// 연발 사격 타이머 클리어
 	GetWorldTimerManager().ClearTimer(BetweenShotsTimer);
 }
 
-void ASPlayerCharacter::InputReload(const FInputActionValue& InValue)
+void ASPlayerCharacter::InputReload()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	// 줌아웃
+	ZoomOut();
+
 	// 총알 장전 애니메이션 재생 중이면 return
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (IsValid(AnimInstance) == false ||
 		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
 		return;
 	}
+
 	// 총알 장전 애니메이션 재생
 	if (IsValid(WeaponInstance->GetReloadAnimMontage()) == true)
 	{

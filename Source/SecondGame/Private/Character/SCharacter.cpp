@@ -71,6 +71,13 @@ float ASCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 
 void ASCharacter::OnCharacterDeath()
 {
+    // 캐릭터 충돌, 움직임 해제
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    
+    // 캐릭터 입력 이벤트 막기
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (IsValid(PlayerController)) {
+        DisableInput(PlayerController);
+    }
 }

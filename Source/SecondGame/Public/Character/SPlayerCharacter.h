@@ -13,6 +13,7 @@ class USInputConfigData;
 class UInputMappingContext;
 class ASWeaponActor;
 class UCameraShakeBase;
+class UParticleSystemComponent;
 
 UCLASS()
 class SECONDGAME_API ASPlayerCharacter : public ASCharacter
@@ -34,14 +35,20 @@ public:
 	float GetCurrentAimPitch() const { return CurrentAimPitch; }
 	float GetCurrentAimYaw() const { return CurrentAimYaw; }
 
-	// 'OnFireEffect' 델리게이트에 바인드할 함수
-	UFUNCTION()
-	void OnFireEffect();
-
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	// 캐릭터 죽으면 호출되는 함수
+	virtual void OnCharacterDeath() override;
+
+	// 'OnFireEffect' 델리게이트에 바인드할 함수
+	UFUNCTION()
+	void OnFireEffect();
+
+	// 캐릭터 리스폰하는 함수
+	void Respawn();
 
 private:
 	// 'IA_Move' 입력에 대응하는 함수
@@ -50,35 +57,35 @@ private:
 	void InputLook(const FInputActionValue& InValue);
 
 	// 'IA_QuickSlot01' 입력에 대응하는 함수
-	void InputQuickSlot01(const FInputActionValue& InValue);
+	void InputQuickSlot01();
 	// 'IA_QuickSlot02' 입력에 대응하는 함수
-	void InputQuickSlot02(const FInputActionValue& InValue);
+	void InputQuickSlot02();
 	// 'IA_QuickSlot03' 입력에 대응하는 함수
-	void InputQuickSlot03(const FInputActionValue& InValue);
+	void InputQuickSlot03();
 
 	// 'IA_Crouch' 입력에 대응하는 함수
-	void InputCrouch(const FInputActionValue& InValue);
+	void InputCrouch();
 
 	// 'IA_Attack' 입력에 대응하는 함수
-	void InputAttack(const FInputActionValue& InValue);
+	void InputAttack();
 
 	// 단발 사격 함수
 	void TryFire();
 
 	// 'IA_Zoom' 입력 순간에 대응하는 줌인 함수
-	void ZoomIn(const FInputActionValue& InValue);
+	void ZoomIn();
 	// 'IA_Zoom' 입력 끝에 대응하는 줌인 함수
-	void ZoomOut(const FInputActionValue& InValue);
+	void ZoomOut();
 
 	// 'IA_Trigger' 입력에 대응하는 함수
-	void ToggleTrigger(const FInputActionValue& InValue);
+	void ToggleTrigger();
 	// 'IA_Attack' 입력 순간에 대응하는 함수
-	void StartFire(const FInputActionValue& InValue);
+	void StartFire();
 	// 'IA_Attack' 입력 끝에 대응하는 함수
-	void StopFire(const FInputActionValue& InValue);
+	void StopFire();
 
 	// 'IA_Reload' 입력에 대응하는 함수
-	void InputReload(const FInputActionValue& InValue);
+	void InputReload();
 
 protected:
 	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트
@@ -155,4 +162,8 @@ protected:
 	// 피격 애니메이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UAnimMontage> HitReactAnimMontage;
+
+	// 캐릭터 부활 이펙트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TObjectPtr<UParticleSystemComponent> RespawnParticleSystemComponent;
 };

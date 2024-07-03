@@ -26,7 +26,7 @@ public:
 
 protected:
 	UFUNCTION()
-	void OnCharacterDeath();
+	virtual void OnCharacterDeath();
 
 protected:
 	// 캐릭터 스탯 정보(HP)를 관리하는 컴포넌트
