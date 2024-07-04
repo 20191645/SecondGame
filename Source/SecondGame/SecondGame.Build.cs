@@ -16,6 +16,9 @@ public class SecondGame : ModuleRules
 
 			// UI
 			"UMG",
-		});
+
+			// AI
+			"NavigationSystem", "AIModule", "GameplayTasks",
+        });
 	}
 }
