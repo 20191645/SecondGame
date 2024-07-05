@@ -58,7 +58,6 @@ void UBTService_DetectPlayerCharacter::TickNode(UBehaviorTreeComponent& OwnerCom
 							// 플레이어 캐릭터 탐지 성공
 							// 'BB_NPC'의 'TargetActor' Key 값을 'PlayerCharacter'로 설정
 							OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, PC);
-							UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Detected!")));
 						}
 					}
 				}

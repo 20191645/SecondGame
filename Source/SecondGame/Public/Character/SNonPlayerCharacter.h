@@ -13,10 +13,25 @@ class SECONDGAME_API ASNonPlayerCharacter : public ASCharacter
 {
 	GENERATED_BODY()
 	
+	friend class UBTTask_Attack;
+
 public:
 	ASNonPlayerCharacter();
 
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	// 단발 사격 함수
+	void TryFire();
+	// 연발 사격 함수
+	void StartFire();
+
+	// 'OnFireEffect' 델리게이트에 바인드할 함수
+	UFUNCTION()
+	void OnFireEffect();
+
 
 protected:
 	// 무기 클래스 정보 -- 'Assault_Rifle_A'
@@ -25,4 +40,12 @@ protected:
 	// 무기 액터 객체
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<ASWeaponActor> WeaponInstance;
+
+	// 분당 사격 횟수
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	float FirePerMinute = 60;
+	// 연발 사격 타이머
+	FTimerHandle BetweenShotsTimer;
+	// 연발 사격 시간 간격
+	float TimeBetweenFire;
 };

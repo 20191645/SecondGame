@@ -6,7 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-const float ASAIController::PatrolRadius(3000.f);
+const float ASAIController::PatrolRadius(1500.f);
 const FName ASAIController::StartPatrolPositionKey(TEXT("StartPatrolPosition"));
 const FName ASAIController::EndPatrolPositionKey(TEXT("EndPatrolPosition"));
 const FName ASAIController::TargetActorKey(TEXT("TargetActor"));

@@ -4,6 +4,7 @@
 #include "Character/SPlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Component/SStatComponent.h"
+#include "Character/SNonPlayerCharacter.h"
 
 USAnimInstance::USAnimInstance()
 {
@@ -41,6 +42,10 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			Acceleration = CharacterMovementComponent->GetCurrentAcceleration();
 			bIsDead = OwnerCharacter->GetStatComponent()->GetCurrentHP() <= KINDA_SMALL_NUMBER;
 
+			// 컨트롤 로테이션 값 업데이트
+			ControlRotation.Pitch = OwnerCharacter->GetCurrentAimPitch();
+			ControlRotation.Yaw = OwnerCharacter->GetCurrentAimYaw();
+
 			// 'LocomotionState'의 State 설정
 			if (Acceleration.Length() < KINDA_SMALL_NUMBER && Velocity.Length() < KINDA_SMALL_NUMBER)
 			{
@@ -51,7 +56,7 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				LocomotionState = ELocomotionState::Walk;
 			}
 
-			// 'MovementDirection'의 방향 설정
+			// 'MovementDirection'의 방향 설정 -- 플레이어 캐릭터
 			ASPlayerCharacter* OwnerPlayerCharacter = Cast<ASPlayerCharacter>(OwnerCharacter);
 			if (IsValid(OwnerPlayerCharacter) == true)
 			{
@@ -74,10 +79,6 @@ void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				{
 					MovementDirection = EMovementDirection::Left;
 				}
-
-				// 컨트롤 로테이션 값 업데이트
-				ControlRotation.Pitch = OwnerPlayerCharacter->GetCurrentAimPitch();
-				ControlRotation.Yaw = OwnerPlayerCharacter->GetCurrentAimYaw();
 			}
 		}
 	}

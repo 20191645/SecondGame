@@ -113,10 +113,10 @@ void ASPlayerCharacter::BeginPlay()
 		}
 	}
 
+	// 'OnFireEffect' 델리게이트에 OnFireEffect() 함수 바인드
 	USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
 	if (IsValid(AnimInstance) == true)
 	{
-		// 'OnFireEffect' 델리게이트에 OnFireEffect() 함수 바인드
 		AnimInstance->OnFireEffect.AddDynamic(this, &ThisClass::OnFireEffect);
 	}
 }
@@ -166,7 +166,7 @@ void ASPlayerCharacter::OnFireEffect()
 				WeaponSocket,
 				ParticleLocation,
 				ParticleRotation,
-				(FVector)(0.5f)
+				(FVector)(0.3f)
 			);
 		}
 	}
@@ -544,6 +544,8 @@ void ASPlayerCharacter::TryFire()
 {
 	APlayerController* PlayerController = GetController<APlayerController>();
 	if (IsValid(PlayerController) == true && IsValid(WeaponInstance) == true) {
+
+#pragma region BulletCount
 		// 총알 장전 애니메이션 재생 중이면 return
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (IsValid(AnimInstance) == false ||
@@ -557,6 +559,7 @@ void ASPlayerCharacter::TryFire()
 		}
 		// 총알 사용
 		--BulletCount[WeaponClassNumber - 1];
+#pragma endregion
 
 #pragma region CaculateTargetTransform
 		// FocalDistance: 초점 거리 (SpringArmLength와 비슷한 값)
@@ -656,7 +659,7 @@ void ASPlayerCharacter::TryFire()
 					HitDamage *= 2;
 				}
 				
-				UKismetSystemLibrary::PrintString(this, BoneNameString + FString::Printf(TEXT("%f"), HitDamage));
+				UKismetSystemLibrary::PrintString(this, BoneNameString + FString::Printf(TEXT(", %f"), HitDamage));
 				HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
 			}
 		}
