@@ -63,6 +63,12 @@ void ASNonPlayerCharacter::BeginPlay()
 	{
 		AnimInstance->OnFireEffect.AddDynamic(this, &ThisClass::OnFireEffect);
 	}
+
+	ASAIController* AIController = GetController<ASAIController>();
+	if (IsValid(AIController) == true) {
+		MaxBulletCount=
+			AIController->GetBlackboardComponent()->GetValueAsInt(AIController->BulletCountKey);
+	}
 }
 
 void ASNonPlayerCharacter::Tick(float DeltaSeconds)
@@ -112,6 +118,23 @@ void ASNonPlayerCharacter::TryFire()
 			Cast<ASPlayerCharacter>(AIController->GetBlackboardComponent()->GetValueAsObject(AIController->TargetActorKey)))
 		{
 
+#pragma region BulletCount
+			// 총알 장전 애니메이션 재생 중이면 return
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (IsValid(AnimInstance) == false ||
+				AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
+				return;
+			}
+
+			// 총알 유무 확인
+			int32 BulletCount = AIController->GetBlackboardComponent()->GetValueAsInt(AIController->BulletCountKey);
+			if (BulletCount == 0) {
+				return;
+			}
+			// 총알 사용
+			AIController->GetBlackboardComponent()->SetValueAsInt(AIController->BulletCountKey, BulletCount - 1);
+#pragma endregion
+
 #pragma region CaculateTargetTransform
 			// WeaponMuzzleLocation: 무기 에셋의 'MuzzleFlash' 소켓 위치
 			FVector WeaponMuzzleLocation = WeaponInstance->GetMesh()->GetSocketLocation(TEXT("MuzzleFlash"));
@@ -148,7 +171,7 @@ void ASNonPlayerCharacter::TryFire()
 		}
 
 		// 사격 거리 디버그 드로잉
-		DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 1.f, 0, 1.f);
+		DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Red, false, 0.5f, 0, 0.5f);
 #pragma endregion
 
 #pragma region DamageEvent
@@ -177,8 +200,7 @@ void ASNonPlayerCharacter::TryFire()
 
 #pragma region Fire
 		// 사격 애니메이션 재생
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetFireAnimMontage()))
+		if (IsValid(WeaponInstance->GetFireAnimMontage()))
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
 		}
@@ -208,6 +230,28 @@ void ASNonPlayerCharacter::OnFireEffect()
 				(FVector)(0.3f)
 			);
 		}
+	}
+}
+
+void ASNonPlayerCharacter::Reload()
+{
+	// 공격 애니메이션 재생 중이면 return
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) == false ||
+		AnimInstance->Montage_IsPlaying(WeaponInstance->GetFireAnimMontage()) == true) {
+		return;
+	}
+
+	// 총알 장전 애니메이션 재생
+	if (IsValid(WeaponInstance->GetReloadAnimMontage()) == true)
+	{
+		AnimInstance->Montage_Play(WeaponInstance->GetReloadAnimMontage());
+	}
+
+	// 총알 개수 장전
+	ASAIController* AIController = GetController<ASAIController>();
+	if (IsValid(AIController) == true) {
+		AIController->GetBlackboardComponent()->SetValueAsInt(AIController->BulletCountKey, MaxBulletCount);
 	}
 }
 

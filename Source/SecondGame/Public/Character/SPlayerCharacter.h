@@ -147,8 +147,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TSubclassOf<UCameraShakeBase> FireCameraShake;
 
-	// 무기별 총알 개수
-	TArray<int32> BulletCount = { 15, 30, 5 };
+	// 무기별 현재 총알 개수
+	TArray<int32> CurrentBulletCount;
+	// 무기별 최대 총알 개수
+	TArray<int32> MaxBulletCount;
 
 	// 피격 애니메이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))

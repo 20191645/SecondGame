@@ -14,6 +14,7 @@ class SECONDGAME_API ASNonPlayerCharacter : public ASCharacter
 	GENERATED_BODY()
 	
 	friend class UBTTask_Attack;
+	friend class UBTTask_Reload;
 
 public:
 	ASNonPlayerCharacter();
@@ -32,6 +33,8 @@ protected:
 	UFUNCTION()
 	void OnFireEffect();
 
+	// 총알 장전 함수
+	void Reload();
 
 protected:
 	// 무기 클래스 정보 -- 'Assault_Rifle_A'
@@ -43,9 +46,12 @@ protected:
 
 	// 분당 사격 횟수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	float FirePerMinute = 60;
+	float FirePerMinute = 45;
 	// 연발 사격 타이머
 	FTimerHandle BetweenShotsTimer;
 	// 연발 사격 시간 간격
 	float TimeBetweenFire;
+
+	// 최대 총알 개수
+	int32 MaxBulletCount;
 };

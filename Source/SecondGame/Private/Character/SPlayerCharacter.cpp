@@ -70,6 +70,10 @@ ASPlayerCharacter::ASPlayerCharacter()
 	RespawnParticleSystemComponent->SetupAttachment(GetRootComponent());
 	// Particle을 터트리지 않는다 [false]
 	RespawnParticleSystemComponent->SetAutoActivate(false);
+
+	// 최대 총알 개수 초기화
+	MaxBulletCount = { 15,30,5 };
+	CurrentBulletCount = MaxBulletCount;
 }
 
 void ASPlayerCharacter::BeginPlay()
@@ -289,9 +293,7 @@ void ASPlayerCharacter::Respawn()
 	InputQuickSlot01();
 
 	// 캐릭터 총알 회복
-	BulletCount[0] = 15;
-	BulletCount[1] = 30;
-	BulletCount[2] = 5;
+	CurrentBulletCount = MaxBulletCount;
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (IsValid(PlayerController)) {
@@ -554,11 +556,11 @@ void ASPlayerCharacter::TryFire()
 		}
 		
 		// 총알 유무 확인
-		if (BulletCount[WeaponClassNumber - 1] == 0) {
+		if (CurrentBulletCount[WeaponClassNumber - 1] == 0) {
 			return;
 		}
 		// 총알 사용
-		--BulletCount[WeaponClassNumber - 1];
+		--CurrentBulletCount[WeaponClassNumber - 1];
 #pragma endregion
 
 #pragma region CaculateTargetTransform
@@ -761,16 +763,6 @@ void ASPlayerCharacter::InputReload()
 		AnimInstance->Montage_Play(WeaponInstance->GetReloadAnimMontage());
 	}
 
-	// 무기 클래스에 따라 총알 개수 장전
-	switch (WeaponClassNumber) {
-	case 1:
-		BulletCount[WeaponClassNumber - 1] = 15;
-		break;
-	case 2:
-		BulletCount[WeaponClassNumber - 1] = 30;
-		break;
-	case 3:
-		BulletCount[WeaponClassNumber - 1] = 5;
-		break;
-	}
+	// 총알 개수 장전
+	CurrentBulletCount[WeaponClassNumber - 1] = MaxBulletCount[WeaponClassNumber - 1];
 }

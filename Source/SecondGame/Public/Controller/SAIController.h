@@ -35,6 +35,8 @@ public:
 	static const FName EndPatrolPositionKey;
 	// 'BB_NPC'의 'TargetActor' Key 이름
 	static const FName TargetActorKey;
+	// 'BB_NPC'의 'BulletCount' Key 이름
+	static const FName BulletCountKey;
 
 private:
 	// 'BB_NPC' 정보를 담을 속성

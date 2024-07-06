@@ -10,6 +10,7 @@ const float ASAIController::PatrolRadius(1500.f);
 const FName ASAIController::StartPatrolPositionKey(TEXT("StartPatrolPosition"));
 const FName ASAIController::EndPatrolPositionKey(TEXT("EndPatrolPosition"));
 const FName ASAIController::TargetActorKey(TEXT("TargetActor"));
+const FName ASAIController::BulletCountKey(TEXT("BulletCount"));
 
 ASAIController::ASAIController()
 {
@@ -52,6 +53,9 @@ void ASAIController::BeginAI(APawn* InPawn)
 
 			// 'BB_NPC'의 'StartPatrolPosition' Key에 현재 폰의 위치 저장
 			BlackboardComponent->SetValueAsVector(StartPatrolPositionKey, InPawn->GetActorLocation());
+
+			// 'BB_NPC'의 'BulletCount' Key에 최대 총알 개수 저장
+			BlackboardComponent->SetValueAsInt(BulletCountKey, 20);
 		}
 	}
 }
