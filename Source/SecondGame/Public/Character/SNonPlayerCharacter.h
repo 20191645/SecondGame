@@ -23,6 +23,8 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 protected:
 	// 단발 사격 함수
 	void TryFire();
@@ -46,7 +48,7 @@ protected:
 
 	// 분당 사격 횟수
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	float FirePerMinute = 45;
+	float FirePerMinute = 75;
 	// 연발 사격 타이머
 	FTimerHandle BetweenShotsTimer;
 	// 연발 사격 시간 간격

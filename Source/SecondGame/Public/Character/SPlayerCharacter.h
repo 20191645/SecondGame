@@ -152,10 +152,6 @@ protected:
 	// 무기별 최대 총알 개수
 	TArray<int32> MaxBulletCount;
 
-	// 피격 애니메이션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
-	TObjectPtr<UAnimMontage> HitReactAnimMontage;
-
 	// 캐릭터 부활 이펙트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<UParticleSystemComponent> RespawnParticleSystemComponent;

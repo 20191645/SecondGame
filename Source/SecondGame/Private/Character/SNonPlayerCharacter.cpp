@@ -11,6 +11,8 @@
 #include "Character/SPlayerCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Component/SStatComponent.h"
+#include "Game/SPlayerState.h"
 
 ASNonPlayerCharacter::ASNonPlayerCharacter()
 {
@@ -103,10 +105,62 @@ void ASNonPlayerCharacter::Tick(float DeltaSeconds)
 	}
 }
 
+float ASNonPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float FinialDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	// NPC 죽음
+	if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+	{
+		// NPC를 죽인 플레이어의 'CurrentKillCount' 값 증가
+		ASPlayerCharacter* DamageCauserCharacter = Cast<ASPlayerCharacter>(DamageCauser);
+		if (IsValid(DamageCauserCharacter) == true)
+		{
+			ASPlayerState* DCCPlayerState = Cast<ASPlayerState>(DamageCauserCharacter->GetPlayerState());
+			if (IsValid(DCCPlayerState) == true)
+			{
+				DCCPlayerState->AddCurrentKillCount(1);
+			}
+		}
+		
+		// 연발 사격 타이머 클리어
+		GetWorldTimerManager().ClearTimer(BetweenShotsTimer);
+
+		// Behavior Tree 종료
+		ASAIController* AIController = Cast<ASAIController>(GetController());
+		if (true == ::IsValid(AIController))
+		{
+			AIController->EndAI();
+		}
+
+		// 죽는 애니메이션 재생 딜레이 후 파괴
+		FTimerHandle deathTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, FTimerDelegate::CreateLambda([&]()
+		{
+			Destroy();
+			WeaponInstance->Destroy();
+			WeaponInstance = nullptr;
+		}), 1.2f, false);
+	}
+	// 피격 상태
+	else {
+		// 피격 애니메이션 재생
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) && IsValid(HitReactAnimMontage))
+		{
+			AnimInstance->Montage_Play(HitReactAnimMontage);
+		}
+	}
+
+	return FinialDamageAmount;
+}
+
 void ASNonPlayerCharacter::TryFire()
 {
-	// 캐릭터가 점프 중이면 공격 불가
-	if (GetCharacterMovement()->IsFalling() == true)
+	// 캐릭터가 점프 중이거나 피격 중이면 공격 불가
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (GetCharacterMovement()->IsFalling() == true ||
+		AnimInstance->Montage_IsPlaying(HitReactAnimMontage) == true)
 	{
 		return;
 	}
@@ -120,7 +174,6 @@ void ASNonPlayerCharacter::TryFire()
 
 #pragma region BulletCount
 			// 총알 장전 애니메이션 재생 중이면 return
-			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 			if (IsValid(AnimInstance) == false ||
 				AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
 				return;
@@ -196,9 +249,7 @@ void ASNonPlayerCharacter::TryFire()
 				HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
 			}
 		}
-#pragma endregion
 
-#pragma region Fire
 		// 사격 애니메이션 재생
 		if (IsValid(WeaponInstance->GetFireAnimMontage()))
 		{

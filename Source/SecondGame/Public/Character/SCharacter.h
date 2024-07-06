@@ -8,6 +8,7 @@
 
 class USStatComponent;
 class USBW_Bar;
+class UAnimMontage;
 
 UCLASS()
 class SECONDGAME_API ASCharacter : public ACharacter
@@ -41,4 +42,8 @@ protected:
 	float CurrentAimPitch = 0.f;
 	// 현재 Yaw 방향 에임 값
 	float CurrentAimYaw = 0.f;
+
+	// 피격 애니메이션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UAnimMontage> HitReactAnimMontage;
 };
