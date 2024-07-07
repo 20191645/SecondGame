@@ -5,6 +5,8 @@
 #include "Game/SPlayerState.h"
 #include "UI/SBW_HPBar.h"
 #include "Components/TextBlock.h"
+#include "UI/SWeaponSlot.h"
+#include "Character/SPlayerCharacter.h"
 
 void USHUD::BindStatComponent(USStatComponent* InStatComponent)
 {
@@ -47,6 +49,23 @@ void USHUD::BindPlayerState(ASPlayerState* InPlayerState)
 	}
 }
 
+void USHUD::SetWeaponSlot()
+{
+	// 'OnWeaponClassNumberChangedDelegate'에 멤버함수 바인드
+	ASPlayerCharacter* OwningCharacter = Cast<ASPlayerCharacter>(GetOwningPlayerPawn());
+	if (IsValid(OwningCharacter) == true) {
+		OwningCharacter->OnWeaponClassNumberChangedDelegate.AddDynamic(this, &ThisClass::OnWeaponClassNumberChanged);
+	}
+
+	// 'WeaponSlot' 초기화
+	PistolSlot->SetWeaponClassNumber(1);
+	AssaultRifleSlot->SetWeaponClassNumber(2);
+	SniperRifleSlot->SetWeaponClassNumber(3);
+
+	// 'WeaponClassNumber' 초기화
+	WeaponClassNumber = 1;
+}
+
 void USHUD::OnKillCountChanged(int32 InOldKillCount, int32 InNewKillCount)
 {
 	// 'CurrentKillCountText' 업데이트
@@ -59,4 +78,9 @@ void USHUD::OnDeathCountChanged(int32 InOldDeathCount, int32 InNewDeathCount)
 	// 'CurrentDeathCountText' 업데이트
 	FString CurrentDeathCountString = FString::Printf(TEXT("%d"), InNewDeathCount);
 	CurrentDeathCountText->SetText(FText::FromString(CurrentDeathCountString));
+}
+
+void USHUD::OnWeaponClassNumberChanged(int32 InWeaponClassNumber)
+{
+	WeaponClassNumber = InWeaponClassNumber;
 }

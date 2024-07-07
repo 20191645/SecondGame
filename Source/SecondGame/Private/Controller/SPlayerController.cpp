@@ -34,12 +34,14 @@ void ASPlayerController::BeginPlay()
         {
             HUDWidget->AddToViewport();
 
+            // 'PlayerState' 바인드
             ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
             if (IsValid(SPlayerState) == true)
             {
                 HUDWidget->BindPlayerState(SPlayerState);
             }
 
+            // 'StatComponent' 바인드
             ASCharacter* PC = GetPawn<ASCharacter>();
             if (IsValid(PC) == true)
             {
@@ -49,6 +51,9 @@ void ASPlayerController::BeginPlay()
                     HUDWidget->BindStatComponent(StatComponent);
                 }
             }
+
+            // 'WeaponSlot' 초기화
+            HUDWidget->SetWeaponSlot();
         }
     }
 }

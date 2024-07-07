@@ -71,9 +71,15 @@ ASPlayerCharacter::ASPlayerCharacter()
 	// Particle을 터트리지 않는다 [false]
 	RespawnParticleSystemComponent->SetAutoActivate(false);
 
-	// 최대 총알 개수 초기화
+	// 현재 무기 클래스 번호 설정
+	SetWeaponClassNumber(1);
+
+	// 총알 개수 초기화
 	MaxBulletCount = { 15,30,5 };
-	CurrentBulletCount = MaxBulletCount;
+	CurrentBulletCount.SetNum(3);
+	for (int i = 1; i <= 3; i++) {
+		SetCurrentBulletCount(i, MaxBulletCount[i - 1]);
+	}
 }
 
 void ASPlayerCharacter::BeginPlay()
@@ -103,9 +109,6 @@ void ASPlayerCharacter::BeginPlay()
 		{
 			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 		}
-
-		// 현재 무기 클래스 번호 설정
-		WeaponClassNumber = 1;
 	}
 
 	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
@@ -208,6 +211,27 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	return FinialDamageAmount;
 }
 
+void ASPlayerCharacter::SetCurrentBulletCount(int32 InWeaponClassNumber, int32 InCurrentBulletCount)
+{
+	if (true == OnCurrentBulletCountChangedDelegate.IsBound())
+	{
+		OnCurrentBulletCountChangedDelegate.Broadcast(InWeaponClassNumber, InCurrentBulletCount);
+	}
+
+	CurrentBulletCount[InWeaponClassNumber - 1] =
+		FMath::Clamp<int32>(InCurrentBulletCount, 0, MaxBulletCount[InWeaponClassNumber - 1]);
+}
+
+void ASPlayerCharacter::SetWeaponClassNumber(int32 InWeaponClassNumber)
+{
+	if (true == OnWeaponClassNumberChangedDelegate.IsBound())
+	{
+		OnWeaponClassNumberChangedDelegate.Broadcast(InWeaponClassNumber);
+	}
+
+	WeaponClassNumber = FMath::Clamp<int32>(InWeaponClassNumber, 1, 3);
+}
+
 void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -293,7 +317,9 @@ void ASPlayerCharacter::Respawn()
 	InputQuickSlot01();
 
 	// 캐릭터 총알 회복
-	CurrentBulletCount = MaxBulletCount;
+	for (int i = 1; i <= 3; i++) {
+		SetCurrentBulletCount(i, MaxBulletCount[i - 1]);
+	}
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (IsValid(PlayerController)) {
@@ -412,7 +438,7 @@ void ASPlayerCharacter::InputQuickSlot01()
 		}
 
 		// 현재 무기 클래스 번호 수정
-		WeaponClassNumber = 1;
+		SetWeaponClassNumber(1);
 	}
 }
 
@@ -461,7 +487,7 @@ void ASPlayerCharacter::InputQuickSlot02()
 		}
 
 		// 현재 무기 클래스 번호 수정
-		WeaponClassNumber = 2;
+		SetWeaponClassNumber(2);
 	}
 }
 
@@ -513,7 +539,7 @@ void ASPlayerCharacter::InputQuickSlot03()
 		}
 
 		// 현재 무기 클래스 번호 수정
-		WeaponClassNumber = 3;
+		SetWeaponClassNumber(3);
 	}
 }
 
@@ -560,7 +586,7 @@ void ASPlayerCharacter::TryFire()
 			return;
 		}
 		// 총알 사용
-		--CurrentBulletCount[WeaponClassNumber - 1];
+		SetCurrentBulletCount(WeaponClassNumber, CurrentBulletCount[WeaponClassNumber - 1] - 1);
 #pragma endregion
 
 #pragma region CaculateTargetTransform
@@ -764,5 +790,5 @@ void ASPlayerCharacter::InputReload()
 	}
 
 	// 총알 개수 장전
-	CurrentBulletCount[WeaponClassNumber - 1] = MaxBulletCount[WeaponClassNumber - 1];
+	SetCurrentBulletCount(WeaponClassNumber, MaxBulletCount[WeaponClassNumber - 1]);
 }

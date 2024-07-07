@@ -15,6 +15,9 @@ class ASWeaponActor;
 class UCameraShakeBase;
 class UParticleSystemComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurrentBulletCountChangeDelegate, int32, InWeaponClassNumber, int32, InCurrentBulletCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponClassNumberChangeDelegate, int32, InWeaponClassNumber);
+
 UCLASS()
 class SECONDGAME_API ASPlayerCharacter : public ASCharacter
 {
@@ -32,6 +35,16 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	// 'CurrentBulletCount' Getter, Setter 함수
+	int32 GetCurrentBulletCount(int32 InWeaponClassNumber) const { return CurrentBulletCount[InWeaponClassNumber - 1]; }
+	void SetCurrentBulletCount(int32 InWeaponClassNumber, int32 InCurrentBulletCount);
+	// 'MaxBulletCount' Getter, Setter 함수
+	int32 GetMaxBulletCount(int32 InWeaponClassNumber) const { return MaxBulletCount[InWeaponClassNumber - 1]; }
+
+	// 'WeaponClassNumber' Getter, Setter 함수
+	int32 GetWeaponClassNumber() const { return WeaponClassNumber; }
+	void SetWeaponClassNumber(int32 InWeaponClassNumber);
 
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -82,6 +95,13 @@ private:
 
 	// 'IA_Reload' 입력에 대응하는 함수
 	void InputReload();
+
+public:
+	// 'CurrentBulletCount'가 변화하면 BroadCast하는 델리게이트
+	FOnCurrentBulletCountChangeDelegate OnCurrentBulletCountChangedDelegate;
+
+	// 'WeaponClassNumber'가 변화하면 BroadCast하는 델리게이트
+	FOnWeaponClassNumberChangeDelegate OnWeaponClassNumberChangedDelegate;
 
 protected:
 	// SpringArmComponent: 3인칭 시점 카메라 구도 설정 돕는 컴포넌트
@@ -140,7 +160,6 @@ protected:
 	TObjectPtr<UUserWidget> SniperZoomUIInstance;
 
 	// 현재 무기 클래스 번호
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	int32 WeaponClassNumber;
 
 	// 카메라 흔들림 클래스 정보
