@@ -25,7 +25,7 @@ void USTitleLayout::OnSinglePlayButtonClicked()
 	// OpenLevel() 함수의 Options 매개변수: FString(TEXT("NextLevel=SingleMainLevel"))
 	// => 'NextLevel'이 Key, 'SingleMainLevel'이 Value 
 	UGameplayStatics::OpenLevel(
-		GetWorld(), FName(TEXT("LoadingLevel")), true, FString(TEXT("NextLevel=SingleMainLevel")));
+		GetWorld(), FName(TEXT("LoadingLevel")), true, FString(TEXT("NextLevel=SingleLobbyLevel")));
 }
 
 void USTitleLayout::OnMultiPlayButtonClicked()
@@ -33,7 +33,7 @@ void USTitleLayout::OnMultiPlayButtonClicked()
 	// 로딩 레벨로 이동
 	// -- 로딩 레벨에서는 'NextLevel'을 파싱해서 'MultiMainLevel' 값을 얻어낸다
 	UGameplayStatics::OpenLevel(
-		GetWorld(), FName(TEXT("LoadingLevel")), true, FString(TEXT("NextLevel=MultiMainLevel")));
+		GetWorld(), FName(TEXT("LoadingLevel")), true, FString(TEXT("NextLevel=MultiLobbyLevel")));
 }
 
 void USTitleLayout::OnExitButtonClicked()

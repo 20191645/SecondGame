@@ -19,6 +19,9 @@ public class SecondGame : ModuleRules
 
 			// AI
 			"NavigationSystem", "AIModule", "GameplayTasks",
+
+			// Json
+			"Json", "JsonUtilities",
         });
 	}
 }

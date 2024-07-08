@@ -11,9 +11,26 @@ ASPlayerState::ASPlayerState()
 
 void ASPlayerState::InitPlayerState()
 {
-	// 플레이어 이름 초기화
-	// -- PlayerName: 'APlayerState' 클래스에 기본적으로 포함된 속성
-	SetPlayerName(TEXT("Player"));
+	// 플레이어 정보 파일("PlayerInfo.txt") 가져오기
+	const FString SavedDirectoryPath = FPaths::Combine(FPlatformMisc::ProjectDir(), TEXT("Saved"));
+	const FString SavedFileName(TEXT("PlayerInfo.txt"));
+	FString AbsoluteFilePath = FPaths::Combine(*SavedDirectoryPath, *SavedFileName);
+	FPaths::MakeStandardFilename(AbsoluteFilePath);
+
+	// 플레이어 정보 파일("PlayerInfo.txt")에서 Json 오브젝트 가져오기
+	FString PlayerInfoJsonString;
+	FFileHelper::LoadFileToString(PlayerInfoJsonString, *AbsoluteFilePath);
+	TSharedRef<TJsonReader<TCHAR>> JsonReaderArchive = TJsonReaderFactory<TCHAR>::Create(PlayerInfoJsonString);
+
+	// Json 오브젝트를 역직렬화하여 플레이어 이름 가져오기
+	TSharedPtr<FJsonObject> PlayerInfoJsonObject = nullptr;
+	if (FJsonSerializer::Deserialize(JsonReaderArchive, PlayerInfoJsonObject) == true)
+	{
+		FString PlayerNameString = PlayerInfoJsonObject->GetStringField(TEXT("playername"));
+		// 플레이어 이름 초기화
+		// -- PlayerName: 'APlayerState' 클래스에 기본적으로 포함된 속성
+		SetPlayerName(PlayerNameString);
+	}
 
 	// 모든 속성값 초기화
 	CurrentKillCount = 0;
