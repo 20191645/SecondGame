@@ -20,14 +20,20 @@ void USTitleLayout::NativeConstruct()
 
 void USTitleLayout::OnSinglePlayButtonClicked()
 {
-	// 레벨로 이동
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("SingleMainLevel"));
+	// 로딩 레벨로 이동
+	// -- 로딩 레벨에서는 'NextLevel'을 파싱해서 'SingleMainLevel' 값을 얻어낸다
+	// OpenLevel() 함수의 Options 매개변수: FString(TEXT("NextLevel=SingleMainLevel"))
+	// => 'NextLevel'이 Key, 'SingleMainLevel'이 Value 
+	UGameplayStatics::OpenLevel(
+		GetWorld(), FName(TEXT("LoadingLevel")), true, FString(TEXT("NextLevel=SingleMainLevel")));
 }
 
 void USTitleLayout::OnMultiPlayButtonClicked()
 {
-	// 레벨로 이동
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("MultiMainLevel"));
+	// 로딩 레벨로 이동
+	// -- 로딩 레벨에서는 'NextLevel'을 파싱해서 'MultiMainLevel' 값을 얻어낸다
+	UGameplayStatics::OpenLevel(
+		GetWorld(), FName(TEXT("LoadingLevel")), true, FString(TEXT("NextLevel=MultiMainLevel")));
 }
 
 void USTitleLayout::OnExitButtonClicked()
