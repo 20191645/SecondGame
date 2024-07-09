@@ -8,6 +8,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurrentKillCountChangeDelegate, int32, InOldCurrentKillCount, int32, InNewCurrentKillCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurrentDeathCountChangeDelegate, int32, InOldCurrentDeathCount, int32, InNewCurrentDeathCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCurrentKillCountReachMaxDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCurrentDeathCountReachMaxDelegate);
 
 UCLASS()
 class SECONDGAME_API ASPlayerState : public APlayerState
@@ -37,9 +39,13 @@ public:
 public:
 	// 'CurrentKillCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentKillCountChangeDelegate OnCurrentKillCountChangedDelegate;
-
 	// 'CurrentDeathCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentDeathCountChangeDelegate OnCurrentDeathCountChangedDelegate;
+
+	// 'CurrentKillCount'가 'MaxKillCount'에 도달하면 BroadCast하는 델리게이트
+	FOnCurrentKillCountReachMaxDelegate OnCurrentKillCountReachedMaxDelegate;
+	// 'CurrentDeathCount'가 'MaxDeathCount'에 도달하면 BroadCast하는 델리게이트
+	FOnCurrentDeathCountReachMaxDelegate OnCurrentDeathCountReachedMaxDelegate;
 
 private:
 	// 플레이어 캐릭터의 현재 킬 수
@@ -47,7 +53,7 @@ private:
 	int32 CurrentKillCount = 0;
 	// 플레이어 캐릭터의 최대 킬 수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
-	int32 MaxKillCount = 10;
+	int32 MaxKillCount = 5;
 
 	// 플레이어 캐릭터의 현재 데스 수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))

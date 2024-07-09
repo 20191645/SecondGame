@@ -34,7 +34,7 @@ void ASPlayerState::InitPlayerState()
 
 	// 모든 속성값 초기화
 	CurrentKillCount = 0;
-	MaxKillCount = 10;
+	MaxKillCount = 5;
 	CurrentDeathCount = 0;
 	MaxDeathCount = 3;
 }
@@ -45,6 +45,10 @@ void ASPlayerState::AddCurrentKillCount(int32 InCurrentKillCount)
 	OnCurrentKillCountChangedDelegate.Broadcast(CurrentKillCount, CurrentKillCount + InCurrentKillCount);
 
 	CurrentKillCount = FMath::Clamp(CurrentKillCount + InCurrentKillCount, 0, MaxKillCount);
+
+	if (CurrentKillCount == MaxKillCount) {
+		OnCurrentKillCountReachedMaxDelegate.Broadcast();
+	}
 }
 
 void ASPlayerState::AddCurrentDeathCount(int32 InCurrentDeathCount)
@@ -53,4 +57,8 @@ void ASPlayerState::AddCurrentDeathCount(int32 InCurrentDeathCount)
 	OnCurrentDeathCountChangedDelegate.Broadcast(CurrentDeathCount, CurrentDeathCount + InCurrentDeathCount);
 
 	CurrentDeathCount = FMath::Clamp(CurrentDeathCount + InCurrentDeathCount, 0, MaxDeathCount);
+
+	if (CurrentDeathCount == MaxDeathCount) {
+		OnCurrentDeathCountReachedMaxDelegate.Broadcast();
+	}
 }

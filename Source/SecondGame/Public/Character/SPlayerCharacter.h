@@ -174,4 +174,11 @@ protected:
 	// 캐릭터 부활 이펙트
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<UParticleSystemComponent> RespawnParticleSystemComponent;
+
+	// 사격 적중 효과 위젯 클래스 정보
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TSubclassOf<UUserWidget> FireHitEffectUIClass;
+	// 사격 적중 효과 위젯 객체
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TObjectPtr<UUserWidget> FireHitEffectUIInstance;
 };

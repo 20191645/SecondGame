@@ -126,6 +126,15 @@ void ASPlayerCharacter::BeginPlay()
 	{
 		AnimInstance->OnFireEffect.AddDynamic(this, &ThisClass::OnFireEffect);
 	}
+
+	// 사격 적중 효과 위젯 개체 생성 후 화면에 안보이게 추가
+	if (IsValid(PlayerController) == true && IsValid(FireHitEffectUIClass) == true) {
+		FireHitEffectUIInstance = CreateWidget<UUserWidget>(PlayerController, FireHitEffectUIClass);
+		if (IsValid(SniperZoomUIInstance) == true) {
+			FireHitEffectUIInstance->AddToViewport();
+			FireHitEffectUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
 }
 
 void ASPlayerCharacter::Tick(float DeltaSeconds)
@@ -296,10 +305,6 @@ void ASPlayerCharacter::OnCharacterDeath()
 			{
 				Respawn();
 			}), 5.0f, false);
-		}
-		// 플레이어 패배
-		else {
-			UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("You Lose!!!")));
 		}
 	}
 }
@@ -687,8 +692,16 @@ void ASPlayerCharacter::TryFire()
 					HitDamage *= 2;
 				}
 				
-				UKismetSystemLibrary::PrintString(this, BoneNameString + FString::Printf(TEXT(", %f"), HitDamage));
 				HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
+
+				// 사격 적중 효과 위젯 화면에 보이기
+				FireHitEffectUIInstance->SetVisibility(ESlateVisibility::Visible);
+				// 0.5초 후 화면에서 숨기기
+				FTimerHandle hitTimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(hitTimerHandle, FTimerDelegate::CreateLambda([&]()
+				{
+					FireHitEffectUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+				}), 0.4f, false);
 			}
 		}
 #pragma endregion
