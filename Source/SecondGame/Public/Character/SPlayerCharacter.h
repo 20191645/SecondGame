@@ -96,6 +96,9 @@ private:
 	// 'IA_Reload' 입력에 대응하는 함수
 	void InputReload();
 
+	// 'IA_Manual' 입력에 대응하는 함수
+	void InputManual();
+
 public:
 	// 'CurrentBulletCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentBulletCountChangeDelegate OnCurrentBulletCountChangedDelegate;

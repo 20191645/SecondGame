@@ -20,6 +20,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Game/SGameMode.h"
 #include "Components/CapsuleComponent.h"
+#include "Controller/SPlayerController.h"
+#include "Controller/SPlayerController_Multi.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -278,6 +280,8 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Attack, ETriggerEvent::Completed, this, &ThisClass::StopFire);
 		// Reload('IA_Reload')을 스타트 상태에서 InputReload() 함수와 바인드
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Reload, ETriggerEvent::Started, this, &ThisClass::InputReload);
+		// Menu('IA_Menu')을 스타트 상태에서 InputMenu() 함수와 바인드
+		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Manual, ETriggerEvent::Started, this, &ThisClass::InputManual);
 	}
 }
 
@@ -805,4 +809,22 @@ void ASPlayerCharacter::InputReload()
 
 	// 총알 개수 장전
 	SetCurrentBulletCount(WeaponClassNumber, MaxBulletCount[WeaponClassNumber - 1]);
+}
+
+void ASPlayerCharacter::InputManual()
+{
+	// 조작법 위젯 토글 -- 싱글 플레이
+	ASPlayerController* PlayerController = GetController<ASPlayerController>();
+	if (true == ::IsValid(PlayerController))
+	{
+		PlayerController->ToggleManualWidget();
+		return;
+	}
+
+	// 조작법 위젯 토글 -- 멀티 플레이
+	ASPlayerController_Multi* MultiPlayerController = GetController<ASPlayerController_Multi>();
+	if (true == ::IsValid(MultiPlayerController))
+	{
+		MultiPlayerController->ToggleManualWidget();
+	}
 }

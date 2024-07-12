@@ -138,9 +138,9 @@ float ASNonPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& D
 		FTimerHandle deathTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, FTimerDelegate::CreateLambda([&]()
 		{
-			Destroy();
 			WeaponInstance->Destroy();
 			WeaponInstance = nullptr;
+			Destroy();
 		}), 1.2f, false);
 	}
 	// 피격 상태

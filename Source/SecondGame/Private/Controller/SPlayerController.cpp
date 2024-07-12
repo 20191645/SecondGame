@@ -8,6 +8,24 @@
 #include "Character/SCharacter.h"
 #include "UI/SGameResultWidget_Single.h"
 
+void ASPlayerController::ToggleManualWidget()
+{
+    checkf(IsValid(ManualWidgetInstance) == true, TEXT("Invalid MaualWidgetInstance"));
+
+    // 炼累过 困连 难扁
+    if (false == bIsManualOn)
+    {
+        ManualWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+    }
+    // 炼累过 困连 掺扁
+    else
+    {
+        ManualWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    bIsManualOn = !bIsManualOn;
+}
+
 void ASPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -64,6 +82,17 @@ void ASPlayerController::BeginPlay()
     {
         SPlayerState->OnCurrentKillCountReachedMaxDelegate.AddDynamic(this, &ThisClass::OnCurrentKillCountReachedMax);
         SPlayerState->OnCurrentDeathCountReachedMaxDelegate.AddDynamic(this, &ThisClass::OnCurrentDeathCountReachedMax);
+    }
+
+    // 炼累过 困连 按眉 积己
+    if (IsValid(ManualWidgetClass) == true)
+    {
+        ManualWidgetInstance = CreateWidget<UUserWidget>(this, ManualWidgetClass);
+        if (IsValid(ManualWidgetInstance) == true)
+        {
+            ManualWidgetInstance->AddToViewport(3);
+            ManualWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+        }
     }
 }
 

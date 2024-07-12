@@ -57,4 +57,8 @@ public:
 	// 'IA_Reload'에 대응하는 속성
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInputAction> Reload;
+
+	// 'IA_Manual'에 대응하는 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> Manual;
 };
