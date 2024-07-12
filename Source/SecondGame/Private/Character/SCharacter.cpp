@@ -23,7 +23,7 @@ ASCharacter::ASCharacter()
     GetMesh()->SetRelativeLocationAndRotation(PivotPosition, PivotRotation);
 
     // MaxWalkSpeed: 캐릭터가 Walk mode일 때 최대 속력
-    GetCharacterMovement()->MaxWalkSpeed = 400.f;
+    GetCharacterMovement()->MaxWalkSpeed = 500.f;
     // MinAnalogWalkSpeed: 디지털과 아날로그(키보드 - 조이스틱) 입력 움직임 간극의 보완값
     GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
     // JumpZVelocity: 캐릭터가 점프할 때 속도

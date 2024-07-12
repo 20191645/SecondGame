@@ -7,7 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-const float UBTDecorator_IsInAttackRange::AttackRange(1200.f);
+const float UBTDecorator_IsInAttackRange::AttackRange(1800.f);
 
 UBTDecorator_IsInAttackRange::UBTDecorator_IsInAttackRange()
 {

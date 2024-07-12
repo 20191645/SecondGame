@@ -50,6 +50,9 @@ public:
 	ELocomotionState GetLocomotionState() const { return LocomotionState; }
 	EMovementDirection GetMovementDirection() const { return MovementDirection; }
 
+	// 'bIsDead' Getter 함수
+	uint8 GetbIsDead() const { return bIsDead; }
+
 protected:
 	// Notify 'FireEffect'가 배치된 프레임에 호출할 함수
 	UFUNCTION()
@@ -86,7 +89,7 @@ protected:
 	EMovementDirection MovementDirection;
 
 	// 컨트롤 로테이션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SAnimInstance", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SAnimInstance", meta = (AllowPrivateAccess))
 	FRotator ControlRotation;
 
 	// 캐릭터가 현재 죽었는지

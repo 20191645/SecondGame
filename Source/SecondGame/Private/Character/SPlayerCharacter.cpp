@@ -19,6 +19,7 @@
 #include "Game/SPlayerState.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Game/SGameMode.h"
+#include "Components/CapsuleComponent.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -312,7 +313,7 @@ void ASPlayerCharacter::OnCharacterDeath()
 void ASPlayerCharacter::Respawn()
 {
 	// 캐릭터 충돌, 움직임 복구
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 
 	// 캐릭터 HP 회복

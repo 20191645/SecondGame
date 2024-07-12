@@ -3,6 +3,7 @@
 #include "Game/SGameMode.h"
 #include "Controller/SPlayerController.h"
 #include "Game/SPlayerState.h"
+#include "Character/SNonPlayerCharacter.h"
 
 ASGameMode::ASGameMode()
 {

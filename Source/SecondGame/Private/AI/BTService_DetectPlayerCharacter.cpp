@@ -5,7 +5,7 @@
 #include "Character/SNonPlayerCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Character/SPlayerCharacter.h"
+#include "Animation/SAnimInstance.h"
 
 UBTService_DetectPlayerCharacter::UBTService_DetectPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -31,7 +31,7 @@ void UBTService_DetectPlayerCharacter::TickNode(UBehaviorTreeComponent& OwnerCom
 			{
 				FVector CenterPosition = NPC->GetActorLocation();
 				// 플레이어 캐릭터 탐지 거리
-				float DetectRadius = 1500.f;
+				float DetectRadius = 2000.f;
 
 				// 하나 이상의 오브젝트를 가져올거기 때문에 TArray 사용
 				TArray<FOverlapResult> OverlapResults;
@@ -51,13 +51,31 @@ void UBTService_DetectPlayerCharacter::TickNode(UBehaviorTreeComponent& OwnerCom
 				{
 					for (auto const& OverlapResult : OverlapResults)
 					{
-						ASPlayerCharacter* PC = Cast<ASPlayerCharacter>(OverlapResult.GetActor());
-						// IsPlayerController(): 감지된 캐릭터가 플레이어가 조종하고 있는 폰인지 확인
-						if (IsValid(PC) == true && PC->GetController()->IsPlayerController() == true)
-						{
-							// 플레이어 캐릭터 탐지 성공
-							// 'BB_NPC'의 'TargetActor' Key 값을 'PlayerCharacter'로 설정
-							OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, PC);
+						ASCharacter* PC = Cast<ASCharacter>(OverlapResult.GetActor());
+						if (IsValid(PC) == true) {
+							// IsPlayerController(): 감지된 캐릭터가 플레이어가 조종하고 있는 폰인지 확인
+							if (PC->GetController()->IsPlayerController() == true)
+							{
+								// 플레이어 캐릭터 탐지 성공
+
+								// 플레이어 캐릭터가 죽어있을 경우 -- 탐지 무시
+								USAnimInstance* SAnimInstance = Cast<USAnimInstance>(PC->GetMesh()->GetAnimInstance());
+								if (IsValid(SAnimInstance) == true) {
+									if (SAnimInstance->GetbIsDead() != 0) {
+										OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, nullptr);
+										continue;
+									}
+								}
+
+								// 'BB_NPC'의 'TargetActor' Key 값을 'PlayerCharacter'로 설정
+								OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, PC);
+								break;
+							}
+							else {
+								// 감지된 캐릭터가 NPC
+								// 'BB_NPC'의 'TargetActor' Key 값을 nullptr로 설정
+								OwnerComp.GetBlackboardComponent()->SetValueAsObject(ASAIController::TargetActorKey, nullptr);
+							}
 						}
 					}
 				}

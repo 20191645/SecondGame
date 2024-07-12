@@ -66,6 +66,7 @@ void ASNonPlayerCharacter::BeginPlay()
 		AnimInstance->OnFireEffect.AddDynamic(this, &ThisClass::OnFireEffect);
 	}
 
+	// 'BulletCount' Key 값 가져오기
 	ASAIController* AIController = GetController<ASAIController>();
 	if (IsValid(AIController) == true) {
 		MaxBulletCount=

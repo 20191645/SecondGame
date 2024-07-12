@@ -6,11 +6,12 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-const float ASAIController::PatrolRadius(1500.f);
+const float ASAIController::PatrolRadius(3000.f);
 const FName ASAIController::StartPatrolPositionKey(TEXT("StartPatrolPosition"));
 const FName ASAIController::EndPatrolPositionKey(TEXT("EndPatrolPosition"));
 const FName ASAIController::TargetActorKey(TEXT("TargetActor"));
 const FName ASAIController::BulletCountKey(TEXT("BulletCount"));
+const FName ASAIController::TargetActorIsDeadKey(TEXT("TargetActorIsDead"));
 
 ASAIController::ASAIController()
 {
@@ -55,7 +56,7 @@ void ASAIController::BeginAI(APawn* InPawn)
 			BlackboardComponent->SetValueAsVector(StartPatrolPositionKey, InPawn->GetActorLocation());
 
 			// 'BB_NPC'의 'BulletCount' Key에 최대 총알 개수 저장
-			BlackboardComponent->SetValueAsInt(BulletCountKey, 20);
+			BlackboardComponent->SetValueAsInt(BulletCountKey, 15);
 		}
 	}
 }

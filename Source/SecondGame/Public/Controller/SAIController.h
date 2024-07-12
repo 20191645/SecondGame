@@ -39,6 +39,8 @@ public:
 	static const FName TargetActorKey;
 	// 'BB_NPC'의 'BulletCount' Key 이름
 	static const FName BulletCountKey;
+	// 'BB_NPC'의 'TargetActorIsDead' Key 이름
+	static const FName TargetActorIsDeadKey;
 
 private:
 	// 'BB_NPC' 정보를 담을 속성
