@@ -179,6 +179,11 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
 	float FinialDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	// 'StatComponent' 유효하지 않으면 리턴
+	if (IsValid(GetStatComponent()) == false) {
+		return FinialDamageAmount;
+	}
+
 	// 플레이어 캐릭터 죽음
 	if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
 	{
@@ -683,14 +688,17 @@ void ASPlayerCharacter::TryFire()
 #pragma endregion
 
 #pragma region Fire
-		// 사격 애니메이션 재생
+		// 사격 애니메이션 재생 -- OwnerClient
 		if (IsValid(WeaponInstance->GetFireAnimMontage()))
 		{
 			AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
 		}
 
-		// 카메라 흔들림 적용
-		if (IsValid(FireCameraShake)) {
+		// 사격 애니메이션 재생 -- Other Client
+		PlayFireMontage_Server();
+
+		// 카메라 흔들림 적용 -- Owner Client
+		if (IsValid(FireCameraShake) && GetOwner() == UGameplayStatics::GetPlayerController(this, 0)) {
 			PlayerController->ClientStartCameraShake(FireCameraShake);
 		}
 #pragma endregion
@@ -772,11 +780,14 @@ void ASPlayerCharacter::InputReload()
 	// 줌아웃
 	ZoomOut();
 
-	// 총알 장전 애니메이션 재생
+	// 총알 장전 애니메이션 재생 -- Owner Client
 	if (IsValid(WeaponInstance->GetReloadAnimMontage()) == true)
 	{
 		AnimInstance->Montage_Play(WeaponInstance->GetReloadAnimMontage());
 	}
+
+	// 총알 장전 애니메이션 재생 -- Other Client
+	PlayReloadMontage_Server();
 
 	// 총알 개수 장전
 	SetCurrentBulletCount(WeaponClassNumber, MaxBulletCount[WeaponClassNumber - 1]);
@@ -883,4 +894,48 @@ void ASPlayerCharacter::UpdateAimValue_Server_Implementation(const float& InAimP
 void ASPlayerCharacter::SetWeaponClassNumber_Server_Implementation(int32 InWeaponClassNumber)
 {
 	WeaponClassNumber = FMath::Clamp<int32>(InWeaponClassNumber, 1, 3);
+}
+
+void ASPlayerCharacter::PlayReloadMontage_Server_Implementation()
+{
+	PlayReloadMontage_NetMulticast();
+}
+
+void ASPlayerCharacter::PlayReloadMontage_NetMulticast_Implementation()
+{
+	// 서버, Owner Client에서 재생X => Other Client에서만 재생
+	if (HasAuthority() == false && GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance) == true)
+		{
+			// 총알 장전 애니메이션 재생
+			if (AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == false)
+			{
+				AnimInstance->Montage_Play(WeaponInstance->GetReloadAnimMontage());
+			}
+		}
+	}
+}
+
+void ASPlayerCharacter::PlayFireMontage_Server_Implementation()
+{
+	PlayFireMontage_NetMulticast();
+}
+
+void ASPlayerCharacter::PlayFireMontage_NetMulticast_Implementation()
+{
+	// 서버, Owner Client에서 재생X => Other Client에서만 재생
+	if (HasAuthority() == false && GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance) == true)
+		{
+			// 사격 애니메이션 재생
+			if (AnimInstance->Montage_IsPlaying(WeaponInstance->GetFireAnimMontage()) == false)
+			{
+				AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
+			}
+		}
+	}
 }

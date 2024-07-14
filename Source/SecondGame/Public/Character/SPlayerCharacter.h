@@ -53,7 +53,7 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void RespawnEffect_NetMulticast();
 
-	// 사격 이펙트 활성화 함수 -- FireEffect_Server() 함수에서 호출
+	// 사격 이펙트 활성화 함수
 	UFUNCTION(NetMulticast, Unreliable)
 	void FireEffect_NetMulticast();
 
@@ -126,7 +126,7 @@ private:
 	UFUNCTION(Server, Reliable)
 	void SetWeaponClassNumber_Server(int32 InWeaponClassNumber);
 
-	// 사격 이펙트 활성화 함수 -- OnFireEffect() 함수에서 호출
+	// 사격 이펙트 활성화 함수 -- 서버 접근용
 	UFUNCTION(Server, Unreliable)
 	void FireEffect_Server();
 
@@ -136,6 +136,20 @@ private:
 	// 'CurrentAimPitch, CurrentAimYaw' 업데이트
 	UFUNCTION(Server, Unreliable)
 	void UpdateAimValue_Server(const float& InAimPitchValue, const float& InAimYawValue);
+
+	// 총알 장전 애니메이션 재생 함수 -- 서버 접근용
+	UFUNCTION(Server, Unreliable)
+	void PlayReloadMontage_Server();
+	// 총알 장전 애니메이션 재생 함수 -- Other Client
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayReloadMontage_NetMulticast();
+
+	// 사격 애니메이션 재생 함수 -- 서버 접근용
+	UFUNCTION(Server, Unreliable)
+	void PlayFireMontage_Server();
+	// 사격 애니메이션 재생 함수 -- Other Client
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayFireMontage_NetMulticast();
 
 public:
 	// 'CurrentBulletCount'가 변화하면 BroadCast하는 델리게이트
