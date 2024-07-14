@@ -46,13 +46,24 @@ public:
 	int32 GetWeaponClassNumber() const { return WeaponClassNumber; }
 	void SetWeaponClassNumber(int32 InWeaponClassNumber);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// 리스폰 이펙트 활성화 함수 
+	// -- NetMulticast: 서버에서 호출, 모든 PC에서 실행
+	UFUNCTION(NetMulticast, Unreliable)
+	void RespawnEffect_NetMulticast();
+
+	// 사격 이펙트 활성화 함수 -- FireEffect_Server() 함수에서 호출
+	UFUNCTION(NetMulticast, Unreliable)
+	void FireEffect_NetMulticast();
+
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	// 캐릭터 죽으면 호출되는 함수
 	virtual void OnCharacterDeath() override;
 
-	// 'OnFireEffect' 델리게이트에 바인드할 함수
+	// 'OnFireEffect' 델리게이트에 바인드할 함수 -- Notify('FireEffect')에 반응
 	UFUNCTION()
 	void OnFireEffect();
 
@@ -99,6 +110,33 @@ private:
 	// 'IA_Manual' 입력에 대응하는 함수
 	void InputManual();
 
+	// 'WeaponInstacne' 생성 
+	// -- Server: 서버에서 수행
+	UFUNCTION(Server, Reliable)
+	void SpawnWeaponInstance_Server();
+	// 'WeaponInstance' 파괴
+	UFUNCTION(Server, Reliable)
+	void DestroyWeaponInstance_Server();
+
+	// 'WeaponInstance'가 복제될 때 호출되는 함수
+	UFUNCTION()
+	void OnRep_WeaponInstance();
+
+	// 'WeaponClassNumber' 수정
+	UFUNCTION(Server, Reliable)
+	void SetWeaponClassNumber_Server(int32 InWeaponClassNumber);
+
+	// 사격 이펙트 활성화 함수 -- OnFireEffect() 함수에서 호출
+	UFUNCTION(Server, Unreliable)
+	void FireEffect_Server();
+
+	// 'ForwardInputValue, RightInputValue' 업데이트
+	UFUNCTION(Server, Unreliable)
+	void UpdateInputValue_Server(const float& InForwardInputValue, const float& InRightInputValue);
+	// 'CurrentAimPitch, CurrentAimYaw' 업데이트
+	UFUNCTION(Server, Unreliable)
+	void UpdateAimValue_Server(const float& InAimPitchValue, const float& InAimYawValue);
+
 public:
 	// 'CurrentBulletCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentBulletCountChangeDelegate OnCurrentBulletCountChangedDelegate;
@@ -122,10 +160,14 @@ protected:
 	TObjectPtr<UInputMappingContext> PlayerCharacterInputMappingContext;
 	
 	// 애니메이션(AnimInstance)를 위해서 Input Value 속성(Forward, Right) 추가
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float ForwardInputValue;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float RightInputValue;
+
+	// 이전 Input Value 속성 값
+	float PreviousForwardInputValue = 0.f;
+	float PreviousRightInputValue = 0.f;
 
 	// 무기 액터1 클래스 정보 -- 'Pistols_A' -- 줌X, 연발X
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -137,7 +179,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TSubclassOf<ASWeaponActor> WeaponClass03;
 	// 무기 액터 객체
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponInstance, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<ASWeaponActor> WeaponInstance;
 
 	// 목표 FOV 값
@@ -163,6 +205,7 @@ protected:
 	TObjectPtr<UUserWidget> SniperZoomUIInstance;
 
 	// 현재 무기 클래스 번호
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	int32 WeaponClassNumber;
 
 	// 카메라 흔들림 클래스 정보

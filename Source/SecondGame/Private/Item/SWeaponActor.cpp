@@ -10,4 +10,7 @@ ASWeaponActor::ASWeaponActor()
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// 클라이언트 복제 허용
+	bReplicates = true;
 }

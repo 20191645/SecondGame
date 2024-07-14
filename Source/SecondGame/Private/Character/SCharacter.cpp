@@ -5,6 +5,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Component/SStatComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 ASCharacter::ASCharacter()
 {
@@ -67,6 +69,14 @@ float ASCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     StatComponent->SetCurrentHP(StatComponent->GetCurrentHP() - FinalDamageAmount);
 
     return FinalDamageAmount;
+}
+
+void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ThisClass, CurrentAimPitch);
+    DOREPLIFETIME(ThisClass, CurrentAimYaw);
 }
 
 void ASCharacter::OnCharacterDeath()

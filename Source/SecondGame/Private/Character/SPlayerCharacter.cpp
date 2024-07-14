@@ -22,6 +22,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Controller/SPlayerController.h"
 #include "Controller/SPlayerController_Multi.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -103,16 +105,7 @@ void ASPlayerCharacter::BeginPlay()
 	}
 
 	// 게임 시작 시 'WeaponSocket'에 'WeaponClass01' 클래스 무기 액터 장착
-	FName WeaponSocket(TEXT("WeaponSocket01"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
-	{
-		// 'WeaponClass01' 클래스의 무기 액터 스폰
-		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass01, FVector::ZeroVector, FRotator::ZeroRotator);
-		if (IsValid(WeaponInstance) == true)
-		{
-			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
-		}
-	}
+	SpawnWeaponInstance_Server();
 
 	// 줌 위젯 개체 생성 후 화면에 안보이게 추가
 	if (IsValid(PlayerController) == true && IsValid(SniperZoomUIClass) == true) {
@@ -151,44 +144,35 @@ void ASPlayerCharacter::Tick(float DeltaSeconds)
 	// 컨트롤 로테이션으로부터 현재 에임 값 실시간 업데이트
 	if (IsValid(GetController()) == true)
 	{
+		PreviousAimPitch = CurrentAimPitch;
+		PreviousAimYaw = CurrentAimYaw;
+
 		FRotator ControlRotation = GetController()->GetControlRotation();
 		CurrentAimPitch = ControlRotation.Pitch;
 		CurrentAimYaw = ControlRotation.Yaw;
+	}
+
+	// 'CurrentAimPitch, CurrentAimYaw' 값이 변경됐을 때 업데이트
+	if (PreviousAimPitch != CurrentAimPitch || PreviousAimYaw != CurrentAimYaw)
+	{
+		if (false == HasAuthority())
+		{
+			UpdateAimValue_Server(CurrentAimPitch, CurrentAimYaw);
+		}
+	}
+	// 'ForwardInputValue, RightInputValue' 값이 변경됐을 때 업데이트
+	if (PreviousForwardInputValue != ForwardInputValue || PreviousRightInputValue != RightInputValue)
+	{
+		if (false == HasAuthority())
+		{
+			UpdateInputValue_Server(ForwardInputValue, RightInputValue);
+		}
 	}
 }
 
 void ASPlayerCharacter::OnFireEffect()
 {
-	FName WeaponSocket(TEXT("WeaponSocket01"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == true)
-	{
-		FRotator ParticleRotation(75.f, 0.f, 0.f);
-		// 무기 클래스에 따라 WeaponSocket에서 총구까지의 거리 적용
-		FVector ParticleLocation;
-		switch (WeaponClassNumber) {
-		case 1:
-			ParticleLocation = FVector(-10.f, 20.f, 5.f);
-			break;
-		case 2:
-			ParticleLocation = FVector(-15.f, 65.f, 20.f);
-			break;
-		case 3:
-			ParticleLocation = FVector(-10.f, 70.f, 20.f);
-			break;
-		}
-		
-		// 'FireParticleSystem' 효과 재생
-		if (IsValid(WeaponInstance->GetFireParticleSystem())) {
-			UGameplayStatics::SpawnEmitterAttached(
-				WeaponInstance->GetFireParticleSystem(),
-				GetMesh(),
-				WeaponSocket,
-				ParticleLocation,
-				ParticleRotation,
-				(FVector)(0.3f)
-			);
-		}
-	}
+	FireEffect_Server();
 }
 
 float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -241,7 +225,58 @@ void ASPlayerCharacter::SetWeaponClassNumber(int32 InWeaponClassNumber)
 		OnWeaponClassNumberChangedDelegate.Broadcast(InWeaponClassNumber);
 	}
 
-	WeaponClassNumber = FMath::Clamp<int32>(InWeaponClassNumber, 1, 3);
+	SetWeaponClassNumber_Server(InWeaponClassNumber);
+}
+
+void ASPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 해당 속성 포함해서 복제
+	DOREPLIFETIME(ThisClass, WeaponInstance);
+	DOREPLIFETIME(ThisClass, WeaponClassNumber);
+
+	DOREPLIFETIME(ThisClass, ForwardInputValue);
+	DOREPLIFETIME(ThisClass, RightInputValue);
+}
+
+void ASPlayerCharacter::RespawnEffect_NetMulticast_Implementation()
+{
+	RespawnParticleSystemComponent->ActivateSystem(true);
+}
+
+void ASPlayerCharacter::FireEffect_NetMulticast_Implementation()
+{
+	FName WeaponSocket(TEXT("WeaponSocket01"));
+	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == true)
+	{
+		FRotator ParticleRotation(75.f, 0.f, 0.f);
+		// 무기 클래스에 따라 WeaponSocket에서 총구까지의 거리 적용
+		FVector ParticleLocation;
+		switch (WeaponClassNumber) {
+		case 1:
+			ParticleLocation = FVector(-10.f, 20.f, 5.f);
+			break;
+		case 2:
+			ParticleLocation = FVector(-15.f, 65.f, 20.f);
+			break;
+		case 3:
+			ParticleLocation = FVector(-10.f, 70.f, 20.f);
+			break;
+		}
+
+		// 'FireParticleSystem' 효과 재생
+		if (IsValid(WeaponInstance->GetFireParticleSystem())) {
+			UGameplayStatics::SpawnEmitterAttached(
+				WeaponInstance->GetFireParticleSystem(),
+				GetMesh(),
+				WeaponSocket,
+				ParticleLocation,
+				ParticleRotation,
+				(FVector)(0.3f)
+			);
+		}
+	}
 }
 
 void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -346,8 +381,10 @@ void ASPlayerCharacter::Respawn()
 		}
 	}
 
-	// 캐릭터 부활 이펙트 적용
-	RespawnParticleSystemComponent->ActivateSystem(true);
+	// 캐릭터 부활 이펙트 적용 -- 서버에서 수행
+	if (true == HasAuthority()) {
+		RespawnEffect_NetMulticast();
+	}
 
 	// 캐릭터 3초간 무적 상태
 	SetCanBeDamaged(false);
@@ -408,7 +445,7 @@ void ASPlayerCharacter::InputQuickSlot01()
 		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
 		return;
 	}
-	
+
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass01' 클래스의 무기 액터 장착 시 return
@@ -417,39 +454,17 @@ void ASPlayerCharacter::InputQuickSlot01()
 		}
 
 		// 다른 클래스의 무기 액터 장착 시 삭제
-		WeaponInstance->Destroy();
-		WeaponInstance = nullptr;
+		DestroyWeaponInstance_Server();
 
 		// 연발 상태 해제
 		bIsTriggerToggle = false;
 	}
 
-	FName WeaponSocket(TEXT("WeaponSocket01"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
-	{
-		// 'WeaponClass01' 클래스의 무기 액터 스폰
-		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass01, FVector::ZeroVector, FRotator::ZeroRotator);
-		if (IsValid(WeaponInstance) == true)
-		{
-			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
-		}
+	// 현재 무기 클래스 번호 수정
+	SetWeaponClassNumber(1);
 
-		// 피스톨 무기 장착 시 사용할 Animation Layer 연결
-		TSubclassOf<UAnimInstance> PistolCharacterAnimLayer = WeaponInstance->GetPistolCharacterAnimLayer();
-		if (IsValid(PistolCharacterAnimLayer) == true)
-		{
-			GetMesh()->LinkAnimClassLayers(PistolCharacterAnimLayer);
-		}
-
-		// 무기 장착 애니메이션 재생
-		if (IsValid(WeaponInstance->GetEquipAnimMontage()))
-		{
-			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
-		}
-
-		// 현재 무기 클래스 번호 수정
-		SetWeaponClassNumber(1);
-	}
+	// 'WeaponClass01' 클래스의 무기 액터 스폰
+	SpawnWeaponInstance_Server();
 }
 
 void ASPlayerCharacter::InputQuickSlot02()
@@ -469,36 +484,14 @@ void ASPlayerCharacter::InputQuickSlot02()
 		}
 
 		// 다른 클래스의 무기 액터 장착 시 삭제
-		WeaponInstance->Destroy();
-		WeaponInstance = nullptr;
+		DestroyWeaponInstance_Server();
 	}
+	
+	// 현재 무기 클래스 번호 수정
+	SetWeaponClassNumber(2);
 
-	FName WeaponSocket(TEXT("WeaponSocket02"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
-	{
-		// 'WeaponClass02' 클래스의 무기 액터 스폰
-		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass02, FVector::ZeroVector, FRotator::ZeroRotator);
-		if (IsValid(WeaponInstance) == true)
-		{
-			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
-		}
-
-		// 라이플 무기 장착 시 사용할 Animation Layer 연결
-		TSubclassOf<UAnimInstance> RifleCharacterAnimLayer = WeaponInstance->GetRifleCharacterAnimLayer();
-		if (IsValid(RifleCharacterAnimLayer) == true)
-		{
-			GetMesh()->LinkAnimClassLayers(RifleCharacterAnimLayer);
-		}
-
-		// 무기 장착 애니메이션 재생
-		if (IsValid(WeaponInstance->GetEquipAnimMontage()))
-		{
-			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
-		}
-
-		// 현재 무기 클래스 번호 수정
-		SetWeaponClassNumber(2);
-	}
+	// 'WeaponClass02' 클래스의 무기 액터 스폰
+	SpawnWeaponInstance_Server();
 }
 
 void ASPlayerCharacter::InputQuickSlot03()
@@ -518,39 +511,17 @@ void ASPlayerCharacter::InputQuickSlot03()
 		}
 
 		// 다른 클래스의 무기 액터 장착 시 삭제
-		WeaponInstance->Destroy();
-		WeaponInstance = nullptr;
+		DestroyWeaponInstance_Server();
 
 		// 연발 상태 해제
 		bIsTriggerToggle = false;
 	}
 
-	FName WeaponSocket(TEXT("WeaponSocket03"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
-	{
-		// 'WeaponClass02' 클래스의 무기 액터 스폰
-		WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass03, FVector::ZeroVector, FRotator::ZeroRotator);
-		if (IsValid(WeaponInstance) == true)
-		{
-			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
-		}
+	// 현재 무기 클래스 번호 수정
+	SetWeaponClassNumber(3);
 
-		// 라이플 무기 장착 시 사용할 Animation Layer 연결
-		TSubclassOf<UAnimInstance> RifleCharacterAnimLayer = WeaponInstance->GetRifleCharacterAnimLayer();
-		if (IsValid(RifleCharacterAnimLayer) == true)
-		{
-			GetMesh()->LinkAnimClassLayers(RifleCharacterAnimLayer);
-		}
-
-		// 무기 장착 애니메이션 재생
-		if (IsValid(WeaponInstance->GetEquipAnimMontage()))
-		{
-			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
-		}
-
-		// 현재 무기 클래스 번호 수정
-		SetWeaponClassNumber(3);
-	}
+	// 'WeaponClass03' 클래스의 무기 액터 스폰
+	SpawnWeaponInstance_Server();
 }
 
 void ASPlayerCharacter::InputCrouch()
@@ -791,15 +762,15 @@ void ASPlayerCharacter::StopFire()
 
 void ASPlayerCharacter::InputReload()
 {
-	// 줌아웃
-	ZoomOut();
-
 	// 총알 장전 애니메이션 재생 중이면 return
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (IsValid(AnimInstance) == false ||
 		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
 		return;
 	}
+
+	// 줌아웃
+	ZoomOut();
 
 	// 총알 장전 애니메이션 재생
 	if (IsValid(WeaponInstance->GetReloadAnimMontage()) == true)
@@ -827,4 +798,89 @@ void ASPlayerCharacter::InputManual()
 	{
 		MultiPlayerController->ToggleManualWidget();
 	}
+}
+
+void ASPlayerCharacter::SpawnWeaponInstance_Server_Implementation()
+{
+	FName WeaponSocket(FString::Printf(TEXT("WeaponSocket0%d"), WeaponClassNumber));
+	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == false)
+	{
+		// 현재 무기 퀵슬롯 번호에 따라 무기 액터 스폰
+		switch (WeaponClassNumber) {
+		case 1:
+			WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass01, FVector::ZeroVector, FRotator::ZeroRotator);
+			break;
+		case 2:
+			WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass02, FVector::ZeroVector, FRotator::ZeroRotator);
+			break;
+		case 3:
+			WeaponInstance = GetWorld()->SpawnActor<ASWeaponActor>(WeaponClass03, FVector::ZeroVector, FRotator::ZeroRotator);
+		}
+
+		if (IsValid(WeaponInstance) == true)
+		{
+			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+		}
+	}
+}
+
+void ASPlayerCharacter::DestroyWeaponInstance_Server_Implementation()
+{
+	if (IsValid(WeaponInstance) == true)
+	{
+		WeaponInstance->Destroy();
+		WeaponInstance = nullptr;
+	}
+}
+
+void ASPlayerCharacter::OnRep_WeaponInstance()
+{
+	if (IsValid(WeaponInstance) == true)
+	{
+		if (WeaponClassNumber == 1) {
+			TSubclassOf<UAnimInstance> PistolCharacterAnimLayer = WeaponInstance->GetPistolCharacterAnimLayer();
+			if (IsValid(PistolCharacterAnimLayer) == true)
+			{
+				GetMesh()->LinkAnimClassLayers(PistolCharacterAnimLayer);
+			}
+		}
+		else {
+			TSubclassOf<UAnimInstance> RifleCharacterAnimLayer = WeaponInstance->GetRifleCharacterAnimLayer();
+			if (IsValid(RifleCharacterAnimLayer) == true)
+			{
+				GetMesh()->LinkAnimClassLayers(RifleCharacterAnimLayer);
+			}
+		}
+
+		// 무기 장착 애니메이션 재생
+		USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
+		if (IsValid(AnimInstance) == true && IsValid(WeaponInstance->GetEquipAnimMontage()))
+		{
+			AnimInstance->Montage_Play(WeaponInstance->GetEquipAnimMontage());
+		}
+	}
+}
+
+void ASPlayerCharacter::FireEffect_Server_Implementation()
+{
+	if (true == HasAuthority()) {
+		FireEffect_NetMulticast();
+	}
+}
+
+void ASPlayerCharacter::UpdateInputValue_Server_Implementation(const float& InForwardInputValue, const float& InRightInputValue)
+{
+	ForwardInputValue = InForwardInputValue;
+	RightInputValue = InRightInputValue;
+}
+
+void ASPlayerCharacter::UpdateAimValue_Server_Implementation(const float& InAimPitchValue, const float& InAimYawValue)
+{
+	CurrentAimPitch = InAimPitchValue;
+	CurrentAimYaw = InAimYawValue;
+}
+
+void ASPlayerCharacter::SetWeaponClassNumber_Server_Implementation(int32 InWeaponClassNumber)
+{
+	WeaponClassNumber = FMath::Clamp<int32>(InWeaponClassNumber, 1, 3);
 }

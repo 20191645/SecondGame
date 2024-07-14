@@ -29,6 +29,8 @@ public:
 	float GetCurrentAimPitch() const { return CurrentAimPitch; }
 	float GetCurrentAimYaw() const { return CurrentAimYaw; }
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	UFUNCTION()
 	virtual void OnCharacterDeath();
@@ -38,10 +40,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<USStatComponent> StatComponent;
 
-	// 현재 Pitch 방향 에임 값
+	// 현재 Pitch, Yaw 방향 에임 값
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float CurrentAimPitch = 0.f;
-	// 현재 Yaw 방향 에임 값
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float CurrentAimYaw = 0.f;
+
+	// 이전 Pitch, Yaw 방향 에임 값
+	float PreviousAimPitch = 0.f;
+	float PreviousAimYaw = 0.f;
 
 	// 피격 애니메이션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
