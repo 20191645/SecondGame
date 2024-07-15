@@ -28,6 +28,13 @@ public:
 	float GetCurrentHP() const { return CurrentHP; }
 	void SetCurrentHP(float InCurrentHP);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+private:
+	// 'CurrentHP' 변화 업데이트
+	UFUNCTION(NetMulticast, Reliable)
+	void OnCurrentHPChanged_NetMulticast(float InOldCurrentHP, float InNewCurrentHP);
+
 public:
 	// 'CurrentHP'가 0에 가까워지면 BroadCast하는 델리게이트
     FOnOutOfCurrentHPDelegate OnOutOfCurrentHPDelegate;
@@ -38,9 +45,9 @@ public:
 
 private:
 	// 캐릭터의 최대 HP
-    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "USStatComponent", Meta = (AllowPrivateAccess))
+    UPROPERTY(Replicated, VisibleInstanceOnly, BlueprintReadOnly, Category = "USStatComponent", Meta = (AllowPrivateAccess))
     float MaxHP;
 	// 캐릭터의 현재 HP
-    UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "USStatComponent", Meta = (AllowPrivateAccess))
+    UPROPERTY(Replicated, Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "USStatComponent", Meta = (AllowPrivateAccess))
     float CurrentHP;
 };

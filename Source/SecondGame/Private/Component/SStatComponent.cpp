@@ -1,6 +1,8 @@
 // SStatComponent.cpp
 
 #include "Component/SStatComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 USStatComponent::USStatComponent()
 {
@@ -43,6 +45,31 @@ void USStatComponent::SetCurrentHP(float InCurrentHP)
 	{
 		OnOutOfCurrentHPDelegate.Broadcast();
 		CurrentHP = 0.f;
+	}
+
+	// 'CurrentHP' 변화 업데이트 -- Owner, Other Client
+	OnCurrentHPChanged_NetMulticast(CurrentHP, CurrentHP);
+}
+
+void USStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 해당 속성 포함해서 복제
+	DOREPLIFETIME(ThisClass, MaxHP);
+	DOREPLIFETIME(ThisClass, CurrentHP);
+}
+
+void USStatComponent::OnCurrentHPChanged_NetMulticast_Implementation(float InOldCurrentHP, float InNewCurrentHP)
+{
+	if (true == OnCurrentHPChangedDelegate.IsBound())
+	{
+		OnCurrentHPChangedDelegate.Broadcast(InOldCurrentHP, InNewCurrentHP);
+	}
+
+	if (InNewCurrentHP < KINDA_SMALL_NUMBER)
+	{
+		OnOutOfCurrentHPDelegate.Broadcast();
 	}
 }
 

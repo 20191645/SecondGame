@@ -201,12 +201,8 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	}
 	// 피격 상태
 	else {
-		// 피격 애니메이션 재생
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (IsValid(AnimInstance) && IsValid(HitReactAnimMontage))
-		{
-			AnimInstance->Montage_Play(HitReactAnimMontage);
-		}
+		// 피격 애니메이션 재생 -- Owner, Other Client
+		PlayHitReactMontage_NetMulticast();
 	}
 
 	return FinialDamageAmount;
@@ -243,45 +239,6 @@ void ASPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(ThisClass, ForwardInputValue);
 	DOREPLIFETIME(ThisClass, RightInputValue);
-}
-
-void ASPlayerCharacter::RespawnEffect_NetMulticast_Implementation()
-{
-	RespawnParticleSystemComponent->ActivateSystem(true);
-}
-
-void ASPlayerCharacter::FireEffect_NetMulticast_Implementation()
-{
-	FName WeaponSocket(TEXT("WeaponSocket01"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == true)
-	{
-		FRotator ParticleRotation(75.f, 0.f, 0.f);
-		// 무기 클래스에 따라 WeaponSocket에서 총구까지의 거리 적용
-		FVector ParticleLocation;
-		switch (WeaponClassNumber) {
-		case 1:
-			ParticleLocation = FVector(-10.f, 20.f, 5.f);
-			break;
-		case 2:
-			ParticleLocation = FVector(-15.f, 65.f, 20.f);
-			break;
-		case 3:
-			ParticleLocation = FVector(-10.f, 70.f, 20.f);
-			break;
-		}
-
-		// 'FireParticleSystem' 효과 재생
-		if (IsValid(WeaponInstance->GetFireParticleSystem())) {
-			UGameplayStatics::SpawnEmitterAttached(
-				WeaponInstance->GetFireParticleSystem(),
-				GetMesh(),
-				WeaponSocket,
-				ParticleLocation,
-				ParticleRotation,
-				(FVector)(0.3f)
-			);
-		}
-	}
 }
 
 void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -386,10 +343,8 @@ void ASPlayerCharacter::Respawn()
 		}
 	}
 
-	// 캐릭터 부활 이펙트 적용 -- 서버에서 수행
-	if (true == HasAuthority()) {
-		RespawnEffect_NetMulticast();
-	}
+	// 캐릭터 부활 이펙트 적용 -- 서버
+	RespawnEffect_Server();
 
 	// 캐릭터 3초간 무적 상태
 	SetCanBeDamaged(false);
@@ -625,18 +580,6 @@ void ASPlayerCharacter::TryFire()
 			HitResult.TraceStart = StartLocation;
 			HitResult.TraceEnd = EndLocation;
 		}
-
-		/*
-			// 충돌 탐지 거리 디버그 드로잉
-			if (IsCollided == true)
-			{
-				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 60.f, 0, 2.f);
-			}
-			else
-			{
-				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 60.f, 0, 2.f);
-			}
-		*/
 #pragma endregion
 
 #pragma region DamageEvent
@@ -646,8 +589,6 @@ void ASPlayerCharacter::TryFire()
 			ASCharacter* HittedCharacter = Cast<ASCharacter>(HitResult.GetActor());
 			if (IsValid(HittedCharacter) == true)
 			{
-				FDamageEvent DamageEvent;
-
 				// 사격 적중한 캐릭터에게 최종적으로 적용될 데미지
 				float HitDamage = 0.f;
 				// 무기 클래스별로 데미지 차이 두기
@@ -666,23 +607,17 @@ void ASPlayerCharacter::TryFire()
 					break;
 				}
 
-				// 헤드샷 적중 시 데미지 2배 적용
-				FString BoneNameString = HitResult.BoneName.ToString();
-				if (true == BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
-				{
-					HitDamage *= 2;
-				}
-				
-				HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
+				// 데미지 처리 -- 서버
+				ApplyDamage_Server(HitResult, HitDamage);
 
 				// 사격 적중 효과 위젯 화면에 보이기
 				FireHitEffectUIInstance->SetVisibility(ESlateVisibility::Visible);
-				// 0.5초 후 화면에서 숨기기
+				// 0.3초 후 화면에서 숨기기
 				FTimerHandle hitTimerHandle;
 				GetWorld()->GetTimerManager().SetTimer(hitTimerHandle, FTimerDelegate::CreateLambda([&]()
 				{
 					FireHitEffectUIInstance->SetVisibility(ESlateVisibility::Collapsed);
-				}), 0.4f, false);
+				}), 0.3f, false);
 			}
 		}
 #pragma endregion
@@ -872,10 +807,54 @@ void ASPlayerCharacter::OnRep_WeaponInstance()
 	}
 }
 
+void ASPlayerCharacter::RespawnEffect_Server_Implementation()
+{
+	RespawnEffect_NetMulticast();
+}
+
+void ASPlayerCharacter::RespawnEffect_NetMulticast_Implementation()
+{
+	RespawnParticleSystemComponent->ActivateSystem(true);
+}
+
 void ASPlayerCharacter::FireEffect_Server_Implementation()
 {
 	if (true == HasAuthority()) {
 		FireEffect_NetMulticast();
+	}
+}
+
+void ASPlayerCharacter::FireEffect_NetMulticast_Implementation()
+{
+	FName WeaponSocket(TEXT("WeaponSocket01"));
+	if (GetMesh()->DoesSocketExist(WeaponSocket) == true && IsValid(WeaponInstance) == true)
+	{
+		FRotator ParticleRotation(75.f, 0.f, 0.f);
+		// 무기 클래스에 따라 WeaponSocket에서 총구까지의 거리 적용
+		FVector ParticleLocation;
+		switch (WeaponClassNumber) {
+		case 1:
+			ParticleLocation = FVector(-10.f, 20.f, 5.f);
+			break;
+		case 2:
+			ParticleLocation = FVector(-15.f, 65.f, 20.f);
+			break;
+		case 3:
+			ParticleLocation = FVector(-10.f, 70.f, 20.f);
+			break;
+		}
+
+		// 'FireParticleSystem' 효과 재생
+		if (IsValid(WeaponInstance->GetFireParticleSystem())) {
+			UGameplayStatics::SpawnEmitterAttached(
+				WeaponInstance->GetFireParticleSystem(),
+				GetMesh(),
+				WeaponSocket,
+				ParticleLocation,
+				ParticleRotation,
+				(FVector)(0.3f)
+			);
+		}
 	}
 }
 
@@ -937,5 +916,33 @@ void ASPlayerCharacter::PlayFireMontage_NetMulticast_Implementation()
 				AnimInstance->Montage_Play(WeaponInstance->GetFireAnimMontage());
 			}
 		}
+	}
+}
+
+void ASPlayerCharacter::ApplyDamage_Server_Implementation(FHitResult HitResult, float HitDamage)
+{
+	ASCharacter* HittedCharacter = Cast<ASCharacter>(HitResult.GetActor());
+	if (IsValid(HittedCharacter) == true)
+	{
+		FDamageEvent DamageEvent;
+
+		// 헤드샷 적중 시 데미지 2배 적용
+		FString BoneNameString = HitResult.BoneName.ToString();
+		if (true == BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
+		{
+			HitDamage *= 2;
+		}
+
+		HittedCharacter->TakeDamage(HitDamage, DamageEvent, GetController(), this);
+	}
+}
+
+void ASPlayerCharacter::PlayHitReactMontage_NetMulticast_Implementation()
+{
+	// 피격 애니메이션 재생
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) && IsValid(HitReactAnimMontage))
+	{
+		AnimInstance->Montage_Play(HitReactAnimMontage);
 	}
 }

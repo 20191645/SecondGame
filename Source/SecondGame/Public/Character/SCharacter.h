@@ -51,6 +51,6 @@ protected:
 	float PreviousAimYaw = 0.f;
 
 	// 피격 애니메이션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UAnimMontage> HitReactAnimMontage;
 };

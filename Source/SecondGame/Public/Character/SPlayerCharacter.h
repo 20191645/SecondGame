@@ -48,15 +48,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// 리스폰 이펙트 활성화 함수 
-	// -- NetMulticast: 서버에서 호출, 모든 PC에서 실행
-	UFUNCTION(NetMulticast, Unreliable)
-	void RespawnEffect_NetMulticast();
-
-	// 사격 이펙트 활성화 함수
-	UFUNCTION(NetMulticast, Unreliable)
-	void FireEffect_NetMulticast();
-
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -126,9 +117,21 @@ private:
 	UFUNCTION(Server, Reliable)
 	void SetWeaponClassNumber_Server(int32 InWeaponClassNumber);
 
+
+	// 리스폰 이펙트 활성화 함수 -- 서버 접근용
+	UFUNCTION(Server, Unreliable)
+	void RespawnEffect_Server();
+	// 리스폰 이펙트 활성화 함수 
+	// -- NetMulticast: 서버에서 호출, 모든 PC에서 실행
+	UFUNCTION(NetMulticast, Unreliable)
+	void RespawnEffect_NetMulticast();
+
 	// 사격 이펙트 활성화 함수 -- 서버 접근용
 	UFUNCTION(Server, Unreliable)
 	void FireEffect_Server();
+	// 사격 이펙트 활성화 함수
+	UFUNCTION(NetMulticast, Unreliable)
+	void FireEffect_NetMulticast();
 
 	// 'ForwardInputValue, RightInputValue' 업데이트
 	UFUNCTION(Server, Unreliable)
@@ -150,6 +153,14 @@ private:
 	// 사격 애니메이션 재생 함수 -- Other Client
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayFireMontage_NetMulticast();
+
+	// 데미지 처리 함수
+	UFUNCTION(Server, Reliable)
+	void ApplyDamage_Server(FHitResult HitResult, float HitDamage);
+
+	// 피격 애니메이션 재생 함수 -- Owner, Other Client
+	UFUNCTION(NetMulticast, Reliable)
+	void PlayHitReactMontage_NetMulticast();
 
 public:
 	// 'CurrentBulletCount'가 변화하면 BroadCast하는 델리게이트

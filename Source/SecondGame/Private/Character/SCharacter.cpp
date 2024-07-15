@@ -37,6 +37,8 @@ ASCharacter::ASCharacter()
 
     // 'StatComponent' 오브젝트 생성
     StatComponent = CreateDefaultSubobject<USStatComponent>(TEXT("StatComponent"));
+    // 'StatComponent' 복제 허용
+    StatComponent->SetIsReplicated(true);
 }
 
 void ASCharacter::BeginPlay()
@@ -77,6 +79,8 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
     DOREPLIFETIME(ThisClass, CurrentAimPitch);
     DOREPLIFETIME(ThisClass, CurrentAimYaw);
+
+    DOREPLIFETIME(ThisClass, HitReactAnimMontage);
 }
 
 void ASCharacter::OnCharacterDeath()
