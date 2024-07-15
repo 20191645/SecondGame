@@ -14,6 +14,9 @@ class SECONDGAME_API ASUIPlayerController : public APlayerController
 public:
 	virtual void BeginPlay() override;
 
+	// 서버 접속 함수
+	void JoinServer(const FString& InIPAddress);
+
 private:
 	// 타이틀 레벨 화면 UI 클래스
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = ASUIPlayerController, Meta = (AllowPrivateAccess))

@@ -4,6 +4,7 @@
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Kismet/GameplayStatics.h"
+#include "Controller/SUIPlayerController.h"
 
 void USMultiLobbyLayout::NativeOnInitialized()
 {
@@ -41,6 +42,11 @@ void USMultiLobbyLayout::OnSubmitButtonClicked()
         FFileHelper::SaveStringToFile(PlayerInfoJsonString, *AbsoluteFilePath);
     }
 
-    // 메인 레벨로 이동
-    UGameplayStatics::OpenLevel(GetWorld(), TEXT("LoadingLevel"), true, FString(TEXT("NextLevel=MultiMainLevel")));
+    // IP 주소를 통해 서버 접속
+    ASUIPlayerController* PlayerController = GetOwningPlayer<ASUIPlayerController>();
+    if (true == ::IsValid(PlayerController))
+    {
+        FText ServerIP = EditServerIP->GetText();
+        PlayerController->JoinServer(ServerIP.ToString());
+    }
 }

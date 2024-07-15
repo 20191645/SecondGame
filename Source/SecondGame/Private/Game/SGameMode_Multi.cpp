@@ -21,4 +21,29 @@ void ASGameMode_Multi::PostLogin(APlayerController* NewPlayer)
 	{
 		PlayerState->InitPlayerState();
 	}
+
+	// 'AlivePlayerControllers'에 새로 입장한 플레이어 캐릭터 정보 추가
+	ASPlayerController_Multi* NewPlayerController = Cast<ASPlayerController_Multi>(NewPlayer);
+	if (true == ::IsValid(NewPlayerController))
+	{
+		AlivePlayerControllers.Add(NewPlayerController);
+		// 알림창 위젯 텍스트 수정
+		NewPlayerController->NotificationText = FText::FromString(TEXT("Welcome to SecondGame"));
+	}
+}
+
+void ASGameMode_Multi::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	// 게임에서 나간 플레이어 캐릭터 정보 추가
+	ASPlayerController_Multi* ExitingPlayerController = Cast<ASPlayerController_Multi>(Exiting);
+	if (true == ::IsValid(ExitingPlayerController) && 
+		INDEX_NONE != AlivePlayerControllers.Find(ExitingPlayerController))
+	{
+		// 'AlivePlayerControllers'에 게임에서 나간 플레이어 캐릭터 정보 삭제
+		AlivePlayerControllers.Remove(ExitingPlayerController);
+		// 'DeadPlayerControllers'에 게임에서 나간 플레이어 캐릭터 정보 추가
+		DeadPlayerControllers.Add(ExitingPlayerController);
+	}
 }

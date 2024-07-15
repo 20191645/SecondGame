@@ -6,6 +6,8 @@
 #include "Game/SPlayerState.h"
 #include "Component/SStatComponent.h"
 #include "Character/SCharacter.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 void ASPlayerController_Multi::ToggleManualWidget()
 {
@@ -23,6 +25,13 @@ void ASPlayerController_Multi::ToggleManualWidget()
     }
 
     bIsManualOn = !bIsManualOn;
+}
+
+void ASPlayerController_Multi::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ThisClass, NotificationText);
 }
 
 void ASPlayerController_Multi::BeginPlay()
@@ -83,6 +92,16 @@ void ASPlayerController_Multi::BeginPlay()
         {
             ManualWidgetInstance->AddToViewport(3);
             ManualWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
+
+    if (IsValid(NotificationWidgetClass) == true)
+    {
+        UUserWidget* NotificationWidget = CreateWidget<UUserWidget>(this, NotificationWidgetClass);
+        if (IsValid(NotificationWidget) == true)
+        {
+            NotificationWidget->AddToViewport(1);
+            NotificationWidget->SetVisibility(ESlateVisibility::Visible);
         }
     }
 }

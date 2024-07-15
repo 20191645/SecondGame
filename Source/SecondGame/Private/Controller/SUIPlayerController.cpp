@@ -2,6 +2,7 @@
 
 #include "Controller/SUIPlayerController.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void ASUIPlayerController::BeginPlay()
 {
@@ -25,4 +26,9 @@ void ASUIPlayerController::BeginPlay()
 			bShowMouseCursor = true;
 		}
 	}
+}
+
+void ASUIPlayerController::JoinServer(const FString& InIPAddress)
+{
+	UGameplayStatics::OpenLevel(GetWorld(), TEXT("LoadingLevel"), true, FString::Printf(TEXT("NextLevel=%s"), *InIPAddress));
 }

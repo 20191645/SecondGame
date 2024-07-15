@@ -20,8 +20,15 @@ public:
 	// 조작법 창 토글 함수
 	void ToggleManualWidget();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
+
+public:
+	// 'NotificationWidget'에 적용될 텍스트
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess))
+	FText NotificationText;
 
 private:
 	// 조준점 위젯 클래스 정보
@@ -43,4 +50,8 @@ private:
 	TObjectPtr<UUserWidget> ManualWidgetInstance;
 	// 조작법 위젯 토글 확인
 	bool bIsManualOn = false;
+
+	// 알림창 위젯 클래스 정보
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TSubclassOf<UUserWidget> NotificationWidgetClass;
 };
