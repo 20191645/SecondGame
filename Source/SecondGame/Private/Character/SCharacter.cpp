@@ -7,6 +7,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
+#include "Game/SGameState.h"
 
 ASCharacter::ASCharacter()
 {
@@ -66,6 +68,13 @@ void ASCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 float ASCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
     float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    // 게임 시작 전 무적 상태 -- 멀티 플레이
+    ASGameState* SGameState = Cast<ASGameState>(UGameplayStatics::GetGameState(this));
+    if (IsValid(SGameState) == true && SGameState->MatchState != EMatchState::Playing)
+    {
+        return FinalDamageAmount;
+    }
 
     // 'CurrentHP' 수정
     StatComponent->SetCurrentHP(StatComponent->GetCurrentHP() - FinalDamageAmount);

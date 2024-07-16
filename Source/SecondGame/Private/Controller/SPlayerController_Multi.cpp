@@ -8,6 +8,8 @@
 #include "Character/SCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
+#include "Game/SGameMode_Multi.h"
 
 void ASPlayerController_Multi::ToggleManualWidget()
 {
@@ -32,6 +34,15 @@ void ASPlayerController_Multi::GetLifetimeReplicatedProps(TArray<FLifetimeProper
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(ThisClass, NotificationText);
+}
+
+void ASPlayerController_Multi::OnOwningCharacterDead()
+{
+    ASGameMode_Multi* GameMode = Cast<ASGameMode_Multi>(UGameplayStatics::GetGameMode(this));
+    if (HasAuthority() == true && IsValid(GameMode) == true)
+    {
+        GameMode->OnControllerDead(this);
+    }
 }
 
 void ASPlayerController_Multi::BeginPlay()

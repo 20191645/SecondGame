@@ -177,11 +177,11 @@ void ASPlayerCharacter::OnFireEffect()
 
 float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	float FinialDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	// 'StatComponent' 유효하지 않으면 리턴
 	if (IsValid(GetStatComponent()) == false) {
-		return FinialDamageAmount;
+		return FinalDamageAmount;
 	}
 
 	// 플레이어 캐릭터 죽음
@@ -205,7 +205,7 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		PlayHitReactMontage_NetMulticast();
 	}
 
-	return FinialDamageAmount;
+	return FinalDamageAmount;
 }
 
 void ASPlayerCharacter::SetCurrentBulletCount(int32 InWeaponClassNumber, int32 InCurrentBulletCount)
@@ -298,15 +298,23 @@ void ASPlayerCharacter::OnCharacterDeath()
 	// 줌아웃
 	ZoomOut();
 
-	// 현재 데스 수가 최대 데스 수보다 적으면 5초 후 리스폰
 	if (IsValid(SPlayerState) == true)
 	{
+		// 현재 데스 수가 최대 데스 수보다 적으면 5초 후 리스폰
 		if (SPlayerState->GetCurrentDeathCount() < SPlayerState->GetMaxDeathCount()) {
 			FTimerHandle respawnTimerHandle;
 			GetWorld()->GetTimerManager().SetTimer(respawnTimerHandle, FTimerDelegate::CreateLambda([&]()
 			{
 				Respawn();
 			}), 5.0f, false);
+		}
+		// 현재 데스 수가 최대 데스 수에 도달 시 게임 탈락 -- 멀티 플레이
+		else {
+			ASPlayerController_Multi* PlayerController = GetController<ASPlayerController_Multi>();
+			if (IsValid(PlayerController) == true && HasAuthority() == true)
+			{
+				PlayerController->OnOwningCharacterDead();
+			}
 		}
 	}
 }

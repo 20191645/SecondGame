@@ -22,6 +22,9 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// 플레이어 죽으면 게임 모드에 전달
+	void OnOwningCharacterDead();
+
 protected:
 	virtual void BeginPlay() override;
 
