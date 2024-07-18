@@ -72,4 +72,3 @@ void USStatComponent::OnCurrentHPChanged_NetMulticast_Implementation(float InOld
 		OnOutOfCurrentHPDelegate.Broadcast();
 	}
 }
-

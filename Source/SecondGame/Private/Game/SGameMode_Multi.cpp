@@ -4,6 +4,7 @@
 #include "Controller/SPlayerController_Multi.h"
 #include "Game/SPlayerState.h"
 #include "Game/SGameState.h"
+#include "Kismet/GameplayStatics.h"
 
 ASGameMode_Multi::ASGameMode_Multi()
 {
@@ -69,6 +70,9 @@ void ASGameMode_Multi::BeginPlay()
 
 	// 'RemainWaitingTimeForPlaying' 초기화
 	RemainWaitingTimeForPlaying = WaitingTime;
+
+	// 'RemainWaitingTimeForEnding' 초기화
+	RemainWaitingTimeForEnding = EndingTime;
 }
 
 void ASGameMode_Multi::OnControllerDead(ASPlayerController_Multi* InDeadController)
@@ -77,6 +81,19 @@ void ASGameMode_Multi::OnControllerDead(ASPlayerController_Multi* InDeadControll
 		|| AlivePlayerControllers.Find(InDeadController) == INDEX_NONE)
 	{
 		return;
+	}
+	
+	ASPlayerState* SPlayerState = InDeadController->GetPlayerState<ASPlayerState>();
+	if (IsValid(SPlayerState) == true)
+	{
+		// 게임 패배 위젯 화면에 추가 -- 해당 컨트롤러가 최대 데스 수 도달
+		if (SPlayerState->GetCurrentDeathCount() >= SPlayerState->GetMaxDeathCount()) {
+			InDeadController->ShowLoserUI(AlivePlayerControllers.Num());
+		}
+		// 게임 패배 위젯 화면에 추가 -- 다른 컨트롤러가 최대 킬 수 도달
+		else {
+			InDeadController->ShowLoserUI(2);
+		}
 	}
 
 	AlivePlayerControllers.Remove(InDeadController);
@@ -142,13 +159,40 @@ void ASGameMode_Multi::OnMainTimerElapsed()
 			if (SGameState->AlivePlayerControllerCount <= 1)
 			{
 				SGameState->MatchState = EMatchState::Ending;
+				// 게임 승리 위젯 화면에 추가
+				AlivePlayerControllers[0]->ShowWinnerUI();
 			}
 		}
 
 		break;
 	}
 	case EMatchState::Ending:
+	{
+		--RemainWaitingTimeForEnding;
+
+		if (RemainWaitingTimeForEnding <= 0)
+		{
+			for (auto AliveController : AlivePlayerControllers)
+			{
+				AliveController->ReturnToTitle();
+			}
+			for (auto DeadController : DeadPlayerControllers)
+			{
+				DeadController->ReturnToTitle();
+			}
+
+			// 타이머 클리어
+			MainTimerHandle.Invalidate();
+
+			// 서버 레벨 초기화
+			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
+			UGameplayStatics::OpenLevel(this, CurrentLevelName, true, FString(TEXT("listen")));
+
+			return;
+		}
+
 		break;
+	}
 	case EMatchState::End:
 		break;
 	default:
