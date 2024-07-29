@@ -4,6 +4,8 @@
 #include "Character/SPlayerCharacter.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 ASPlayerState::ASPlayerState()
 {
@@ -31,12 +33,6 @@ void ASPlayerState::InitPlayerState()
 		// -- PlayerName: 'APlayerState' 클래스에 기본적으로 포함된 속성
 		SetPlayerName(PlayerNameString);
 	}
-
-	// 모든 속성값 초기화
-	CurrentKillCount = 0;
-	MaxKillCount = 5;
-	CurrentDeathCount = 0;
-	MaxDeathCount = 3;
 }
 
 void ASPlayerState::AddCurrentKillCount(int32 InCurrentKillCount)
@@ -46,9 +42,12 @@ void ASPlayerState::AddCurrentKillCount(int32 InCurrentKillCount)
 
 	CurrentKillCount = FMath::Clamp(CurrentKillCount + InCurrentKillCount, 0, MaxKillCount);
 
-	if (CurrentKillCount == MaxKillCount) {
+	if (CurrentKillCount >= MaxKillCount) {
 		OnCurrentKillCountReachedMaxDelegate.Broadcast();
 	}
+
+	// 'CurrentKillCount' 변화 업데이트
+	OnCurrentKillCountChanged_NetMulticast(CurrentKillCount);
 }
 
 void ASPlayerState::AddCurrentDeathCount(int32 InCurrentDeathCount)
@@ -58,7 +57,43 @@ void ASPlayerState::AddCurrentDeathCount(int32 InCurrentDeathCount)
 
 	CurrentDeathCount = FMath::Clamp(CurrentDeathCount + InCurrentDeathCount, 0, MaxDeathCount);
 
-	if (CurrentDeathCount == MaxDeathCount) {
+	if (CurrentDeathCount >= MaxDeathCount) {
+		OnCurrentDeathCountReachedMaxDelegate.Broadcast();
+	}
+
+	// 'CurrentDeathCount' 변화 업데이트
+	OnCurrentDeathCountChanged_NetMulticast(CurrentDeathCount);
+}
+
+void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 해당 속성 포함해서 복제
+	DOREPLIFETIME(ThisClass, CurrentKillCount);
+	DOREPLIFETIME(ThisClass, CurrentDeathCount);
+}
+
+void ASPlayerState::OnCurrentKillCountChanged_NetMulticast_Implementation(int32 InCurrentKillCount)
+{
+	if (true == OnCurrentKillCountChangedDelegate.IsBound())
+	{
+		OnCurrentKillCountChangedDelegate.Broadcast(CurrentKillCount, InCurrentKillCount);
+	}
+
+	if (CurrentKillCount >= MaxKillCount) {
+		OnCurrentKillCountReachedMaxDelegate.Broadcast();
+	}
+}
+
+void ASPlayerState::OnCurrentDeathCountChanged_NetMulticast_Implementation(int32 InCurrentDeathCount)
+{
+	if (true == OnCurrentDeathCountChangedDelegate.IsBound())
+	{
+		OnCurrentDeathCountChangedDelegate.Broadcast(CurrentDeathCount, InCurrentDeathCount);
+	}
+
+	if (CurrentDeathCount >= MaxDeathCount) {
 		OnCurrentDeathCountReachedMaxDelegate.Broadcast();
 	}
 }

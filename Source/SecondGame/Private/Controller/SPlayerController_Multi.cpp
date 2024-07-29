@@ -49,28 +49,23 @@ void ASPlayerController_Multi::OnOwningCharacterDead()
 
 void ASPlayerController_Multi::ShowWinnerUI_Implementation()
 {
-    if (HasAuthority() == false)
-    {
-        // 2초 딜레이 후 게임 승리 위젯 화면에 추가
-        FTimerHandle gameTimerHandle;
-        GetWorld()->GetTimerManager().SetTimer(gameTimerHandle, FTimerDelegate::CreateLambda([&]()
-        {
-            if (IsValid(WinnerUIClass) == true)
-            {
-                USGameResultWidget_Multi* WinnerUI = CreateWidget<USGameResultWidget_Multi>(this, WinnerUIClass);
-                if (IsValid(WinnerUI) == true)
-                {
-                    WinnerUI->AddToViewport(3);
-                    WinnerUI->RankingText->SetText(FText::FromString(TEXT("Rank 1")));
+	if (HasAuthority() == false)
+	{
+		if (IsValid(WinnerUIClass) == true)
+		{
+			USGameResultWidget_Multi* WinnerUI = CreateWidget<USGameResultWidget_Multi>(this, WinnerUIClass);
+			if (IsValid(WinnerUI) == true)
+			{
+				WinnerUI->AddToViewport(3);
+				WinnerUI->RankingText->SetText(FText::FromString(TEXT("Rank 1")));
 
-                    FInputModeUIOnly Mode;
-                    Mode.SetWidgetToFocus(WinnerUI->GetCachedWidget());
-                    SetInputMode(Mode);
+				FInputModeUIOnly Mode;
+				Mode.SetWidgetToFocus(WinnerUI->GetCachedWidget());
+				SetInputMode(Mode);
 
-                    bShowMouseCursor = true;
-                }
-            }
-        }), 2.0f, false);
+				bShowMouseCursor = true;
+			}
+		}
     }
 }
 
@@ -78,27 +73,22 @@ void ASPlayerController_Multi::ShowLoserUI_Implementation(int32 InRanking)
 {
     if (HasAuthority() == false)
     {
-        // 2초 딜레이 후 게임 패배 위젯 화면에 추가
-        FTimerHandle gameTimerHandle;
-        GetWorld()->GetTimerManager().SetTimer(gameTimerHandle, FTimerDelegate::CreateLambda([&]()
+        if (IsValid(LoserUIClass) == true)
         {
-            if (IsValid(LoserUIClass) == true)
+            USGameResultWidget_Multi* LoserUI = CreateWidget<USGameResultWidget_Multi>(this, LoserUIClass);
+            if (IsValid(LoserUI) == true)
             {
-                USGameResultWidget_Multi* LoserUI = CreateWidget<USGameResultWidget_Multi>(this, LoserUIClass);
-                if (IsValid(LoserUI) == true)
-                {
-                    LoserUI->AddToViewport(3);
-                    FString RankingString = FString::Printf(TEXT("Rank %d"), InRanking);
-                    LoserUI->RankingText->SetText(FText::FromString(RankingString));
+                LoserUI->AddToViewport(3);
+                FString RankingString = FString::Printf(TEXT("Rank %d"), InRanking);
+                LoserUI->RankingText->SetText(FText::FromString(RankingString));
 
-                    FInputModeUIOnly Mode;
-                    Mode.SetWidgetToFocus(LoserUI->GetCachedWidget());
-                    SetInputMode(Mode);
+                FInputModeUIOnly Mode;
+                Mode.SetWidgetToFocus(LoserUI->GetCachedWidget());
+                SetInputMode(Mode);
 
-                    bShowMouseCursor = true;
-                }
+                bShowMouseCursor = true;
             }
-        }), 2.0f, false);
+        }
     }
 }
 
@@ -115,79 +105,84 @@ void ASPlayerController_Multi::BeginPlay()
 {
     Super::BeginPlay();
 
-    // SetInputMode(): 플레이 버튼 누르면 바로 포커싱 되게끔 함
-    FInputModeGameOnly InputModeGameOnly;
-    SetInputMode(InputModeGameOnly);
-
-    // 조준점 위젯 화면에 추가
-    if (IsValid(CrosshairUIClass) == true)
+    // 'PlayerState' Replication 기다리기 위해 1초 딜레이
+    FTimerHandle replicationTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(replicationTimerHandle, FTimerDelegate::CreateLambda([&]()
     {
-        UUserWidget* CrosshairUIInstance = CreateWidget<UUserWidget>(this, CrosshairUIClass);
-        if (IsValid(CrosshairUIInstance) == true)
-        {
-            CrosshairUIInstance->AddToViewport();
-            CrosshairUIInstance->SetVisibility(ESlateVisibility::Visible);
-        }
-    }
+        // SetInputMode(): 플레이 버튼 누르면 바로 포커싱 되게끔 함
+        FInputModeGameOnly InputModeGameOnly;
+        SetInputMode(InputModeGameOnly);
 
-    // HUD 위젯 화면에 추가
-    if (IsValid(HUDWidgetClass) == true)
-    {
-        HUDWidget = CreateWidget<USHUD>(this, HUDWidgetClass);
-        if (IsValid(HUDWidget) == true)
+        // 조준점 위젯 화면에 추가
+        if (IsValid(CrosshairUIClass) == true)
         {
-            HUDWidget->AddToViewport();
-
-            // 'PlayerState' 바인드
-            ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
-            if (IsValid(SPlayerState) == true)
+            UUserWidget* CrosshairUIInstance = CreateWidget<UUserWidget>(this, CrosshairUIClass);
+            if (IsValid(CrosshairUIInstance) == true)
             {
-                HUDWidget->BindPlayerState(SPlayerState);
+                CrosshairUIInstance->AddToViewport();
+                CrosshairUIInstance->SetVisibility(ESlateVisibility::Visible);
             }
+        }
 
-            // 'StatComponent' 바인드
-            ASCharacter* PC = GetPawn<ASCharacter>();
-            if (IsValid(PC) == true)
+        // HUD 위젯 화면에 추가
+        if (IsValid(HUDWidgetClass) == true)
+        {
+            HUDWidget = CreateWidget<USHUD>(this, HUDWidgetClass);
+            if (IsValid(HUDWidget) == true)
             {
-                USStatComponent* StatComponent = PC->GetStatComponent();
-                if (IsValid(StatComponent) == true)
+                HUDWidget->AddToViewport();
+
+                // 'PlayerState' 바인드
+                ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
+                if (IsValid(SPlayerState) == true)
                 {
-                    HUDWidget->BindStatComponent(StatComponent);
+                    HUDWidget->BindPlayerState(SPlayerState);
                 }
+
+                // 'StatComponent' 바인드
+                ASCharacter* PC = GetPawn<ASCharacter>();
+                if (IsValid(PC) == true)
+                {
+                    USStatComponent* StatComponent = PC->GetStatComponent();
+                    if (IsValid(StatComponent) == true)
+                    {
+                        HUDWidget->BindStatComponent(StatComponent);
+                    }
+                }
+
+                // 'WeaponSlot' 초기화
+                HUDWidget->SetWeaponSlot();
             }
-
-            // 'WeaponSlot' 초기화
-            HUDWidget->SetWeaponSlot();
         }
-    }
 
-    // 조작법 위젯 객체 생성
-    if (IsValid(ManualWidgetClass) == true)
-    {
-        ManualWidgetInstance = CreateWidget<UUserWidget>(this, ManualWidgetClass);
-        if (IsValid(ManualWidgetInstance) == true)
+        // 조작법 위젯 객체 생성
+        if (IsValid(ManualWidgetClass) == true)
         {
-            ManualWidgetInstance->AddToViewport(3);
-            ManualWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+            ManualWidgetInstance = CreateWidget<UUserWidget>(this, ManualWidgetClass);
+            if (IsValid(ManualWidgetInstance) == true)
+            {
+                ManualWidgetInstance->AddToViewport(3);
+                ManualWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+            }
         }
-    }
 
-    if (IsValid(NotificationWidgetClass) == true)
-    {
-        UUserWidget* NotificationWidget = CreateWidget<UUserWidget>(this, NotificationWidgetClass);
-        if (IsValid(NotificationWidget) == true)
+        if (IsValid(NotificationWidgetClass) == true)
         {
-            NotificationWidget->AddToViewport(1);
-            NotificationWidget->SetVisibility(ESlateVisibility::Visible);
+            UUserWidget* NotificationWidget = CreateWidget<UUserWidget>(this, NotificationWidgetClass);
+            if (IsValid(NotificationWidget) == true)
+            {
+                NotificationWidget->AddToViewport(1);
+                NotificationWidget->SetVisibility(ESlateVisibility::Visible);
+            }
         }
-    }
 
-    // 'OnCurrentKillCountReachedMaxDelegate' 델리게이트에 멤버함수 바인드
-    ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
-    if (IsValid(SPlayerState) == true)
-    {
-        SPlayerState->OnCurrentKillCountReachedMaxDelegate.AddDynamic(this, &ThisClass::OnCurrentKillCountReachedMax);
-    }
+        // 'OnCurrentKillCountReachedMaxDelegate' 델리게이트에 멤버함수 바인드
+        ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
+        if (IsValid(SPlayerState) == true)
+        {
+            SPlayerState->OnCurrentKillCountReachedMaxDelegate.AddDynamic(this, &ThisClass::OnCurrentKillCountReachedMax);
+        }
+    }), 0.5f, false);
 }
 
 void ASPlayerController_Multi::OnCurrentKillCountReachedMax()
@@ -197,7 +192,7 @@ void ASPlayerController_Multi::OnCurrentKillCountReachedMax()
     if (HasAuthority() == true && IsValid(GameMode) == true)
     {
         for (auto AlivePlayerController : GameMode->GetAlivePlayerControllers()) {
-            if (AlivePlayerController != this) {
+            if (IsValid(AlivePlayerController) == true && AlivePlayerController != this) {
                 GameMode->OnControllerDead(AlivePlayerController);
             }
         }

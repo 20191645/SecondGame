@@ -30,9 +30,9 @@ public:
 	TObjectPtr<UTextBlock> RankingText;
 
 	// 타이틀 화면 돌아가기 버튼
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess, BindWidget))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
 	TObjectPtr<UButton> ReturnButton;
 	// 게임 종료 버튼
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess, BindWidget))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (BindWidget))
 	TObjectPtr<UButton> ExitButton;
 };

@@ -7,6 +7,7 @@
 #include "Components/TextBlock.h"
 #include "UI/SWeaponSlot.h"
 #include "Character/SPlayerCharacter.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void USHUD::BindStatComponent(USStatComponent* InStatComponent)
 {

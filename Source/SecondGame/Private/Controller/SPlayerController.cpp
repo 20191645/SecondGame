@@ -98,7 +98,7 @@ void ASPlayerController::BeginPlay()
 
 void ASPlayerController::OnCurrentKillCountReachedMax()
 {
-    // 2초 딜레이 후 게임 클리어 위젯 화면에 추가
+    // 1초 딜레이 후 게임 클리어 위젯 화면에 추가
     FTimerHandle gameTimerHandle;
     GetWorld()->GetTimerManager().SetTimer(gameTimerHandle, FTimerDelegate::CreateLambda([&]()
     {
@@ -122,12 +122,12 @@ void ASPlayerController::OnCurrentKillCountReachedMax()
                 SetPause(true);
             }
         }
-    }), 2.0f, false);
+    }), 1.0f, false);
 }
 
 void ASPlayerController::OnCurrentDeathCountReachedMax()
 {
-    // 2초 딜레이 후 게임 오버 위젯 화면에 추가
+    // 1초 딜레이 후 게임 오버 위젯 화면에 추가
     FTimerHandle gameTimerHandle;
     GetWorld()->GetTimerManager().SetTimer(gameTimerHandle, FTimerDelegate::CreateLambda([&]()
     {
@@ -151,5 +151,5 @@ void ASPlayerController::OnCurrentDeathCountReachedMax()
                 SetPause(true);
             }
         }
-    }), 2.0f, false);
+    }), 1.0f, false);
 }

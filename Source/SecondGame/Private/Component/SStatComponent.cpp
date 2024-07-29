@@ -47,7 +47,7 @@ void USStatComponent::SetCurrentHP(float InCurrentHP)
 		CurrentHP = 0.f;
 	}
 
-	// 'CurrentHP' 변화 업데이트 -- Owner, Other Client
+	// 'CurrentHP' 변화 업데이트
 	OnCurrentHPChanged_NetMulticast(CurrentHP, CurrentHP);
 }
 

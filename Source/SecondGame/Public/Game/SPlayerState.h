@@ -36,6 +36,16 @@ public:
 	int32 GetCurrentDeathCount() const { return CurrentDeathCount; }
 	void AddCurrentDeathCount(int32 InCurrentDeathCount);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+private:
+	// 'CurrentKillCount' 변화 업데이트
+	UFUNCTION(NetMulticast, Reliable)
+	void OnCurrentKillCountChanged_NetMulticast(int32 InCurrentKillCount);
+	// 'CurrentDeathCount' 변화 업데이트
+	UFUNCTION(NetMulticast, Reliable)
+	void OnCurrentDeathCountChanged_NetMulticast(int32 InCurrentDeathCount);
+
 public:
 	// 'CurrentKillCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentKillCountChangeDelegate OnCurrentKillCountChangedDelegate;
@@ -49,14 +59,14 @@ public:
 
 private:
 	// 플레이어 캐릭터의 현재 킬 수
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
 	int32 CurrentKillCount = 0;
 	// 플레이어 캐릭터의 최대 킬 수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
 	int32 MaxKillCount = 5;
 
 	// 플레이어 캐릭터의 현재 데스 수
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
 	int32 CurrentDeathCount = 0;
 	// 플레이어 캐릭터의 최대 데스 수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))

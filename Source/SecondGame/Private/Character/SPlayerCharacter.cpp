@@ -198,6 +198,14 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 				DCCPlayerState->AddCurrentKillCount(1);
 			}
 		}
+
+		// 플레이어의 'CurrentDeathCount' 값 증가
+		// -> 죽은 이유 관계없이 무조건 증가
+		ASPlayerState* SPlayerState = Cast<ASPlayerState>(GetPlayerState());
+		if (IsValid(SPlayerState) == true)
+		{
+			SPlayerState->AddCurrentDeathCount(1);
+		}
 	}
 	// 피격 상태
 	else {
@@ -287,36 +295,34 @@ void ASPlayerCharacter::OnCharacterDeath()
 	// 'SCharacter' 클래스의 OnCharacterDeath() 함수 실행
 	Super::OnCharacterDeath();
 
-	// 플레이어의 'CurrentDeathCount' 값 증가
-	// -> 죽은 이유 관계없이 무조건 증가
-	ASPlayerState* SPlayerState = Cast<ASPlayerState>(GetPlayerState());
-	if (IsValid(SPlayerState) == true)
-	{
-		SPlayerState->AddCurrentDeathCount(1);
-	}
-
 	// 줌아웃
 	ZoomOut();
 
-	if (IsValid(SPlayerState) == true)
+	// TakeDamage() 함수의 'PlayerState' 수정 로직 기다리기 위해 0.5초 딜레이
+	FTimerHandle deathTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, FTimerDelegate::CreateLambda([&]()
 	{
-		// 현재 데스 수가 최대 데스 수보다 적으면 5초 후 리스폰
-		if (SPlayerState->GetCurrentDeathCount() < SPlayerState->GetMaxDeathCount()) {
-			FTimerHandle respawnTimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(respawnTimerHandle, FTimerDelegate::CreateLambda([&]()
-			{
-				Respawn();
-			}), 5.0f, false);
-		}
-		// 현재 데스 수가 최대 데스 수에 도달 시 게임 탈락 -- 멀티 플레이
-		else {
-			ASPlayerController_Multi* PlayerController = GetController<ASPlayerController_Multi>();
-			if (IsValid(PlayerController) == true && HasAuthority() == true)
-			{
-				PlayerController->OnOwningCharacterDead();
+		ASPlayerState* SPlayerState = Cast<ASPlayerState>(GetPlayerState());
+		if (IsValid(SPlayerState) == true)
+		{
+			// 현재 데스 수가 최대 데스 수보다 적으면 5초 후 리스폰
+			if (SPlayerState->GetCurrentDeathCount() < SPlayerState->GetMaxDeathCount()) {
+				FTimerHandle respawnTimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(respawnTimerHandle, FTimerDelegate::CreateLambda([&]()
+				{
+					Respawn();
+				}), 5.0f, false);
+			}
+			// 현재 데스 수가 최대 데스 수에 도달 시 게임 탈락 -- 멀티 플레이
+			else {
+				ASPlayerController_Multi* PlayerController = GetController<ASPlayerController_Multi>();
+				if (IsValid(PlayerController) == true && HasAuthority() == true)
+				{
+					PlayerController->OnOwningCharacterDead();
+				}
 			}
 		}
-	}
+	}), 0.5f, false);
 }
 
 void ASPlayerCharacter::Respawn()
@@ -414,6 +420,8 @@ void ASPlayerCharacter::InputQuickSlot01()
 		return;
 	}
 
+	ZoomOut();
+
 	if (IsValid(WeaponInstance) == true)
 	{
 		// 이미 'WeaponClass01' 클래스의 무기 액터 장착 시 return
@@ -443,6 +451,8 @@ void ASPlayerCharacter::InputQuickSlot02()
 		AnimInstance->Montage_IsPlaying(WeaponInstance->GetReloadAnimMontage()) == true) {
 		return;
 	}
+
+	ZoomOut();
 
 	if (IsValid(WeaponInstance) == true)
 	{
@@ -774,6 +784,13 @@ void ASPlayerCharacter::SpawnWeaponInstance_Server_Implementation()
 		if (IsValid(WeaponInstance) == true)
 		{
 			WeaponInstance->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+		}
+
+		// 무기 변경에 따른 함수 호출 -- 싱글 플레이
+		ASPlayerController* PlayerController = Cast<ASPlayerController>(GetController());
+		if (IsValid(PlayerController) == true)
+		{
+			OnRep_WeaponInstance();
 		}
 	}
 }
