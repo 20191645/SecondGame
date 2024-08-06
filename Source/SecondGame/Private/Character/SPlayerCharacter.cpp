@@ -298,6 +298,10 @@ void ASPlayerCharacter::OnCharacterDeath()
 	// 줌아웃
 	ZoomOut();
 
+	// 연발 사격 상태 해제
+	bIsTriggerToggle = false;
+	GetWorldTimerManager().ClearTimer(BetweenShotsTimer);
+
 	// TakeDamage() 함수의 'PlayerState' 수정 로직 기다리기 위해 0.5초 딜레이
 	FTimerHandle deathTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, FTimerDelegate::CreateLambda([&]()
@@ -319,6 +323,9 @@ void ASPlayerCharacter::OnCharacterDeath()
 				if (IsValid(PlayerController) == true && HasAuthority() == true)
 				{
 					PlayerController->OnOwningCharacterDead();
+					// 플레이어 캐릭터, 무기 파괴
+					DestroyWeaponInstance_Server();
+					DestroyPlayerCharacter_Server();
 				}
 			}
 		}
@@ -970,4 +977,14 @@ void ASPlayerCharacter::PlayHitReactMontage_NetMulticast_Implementation()
 	{
 		AnimInstance->Montage_Play(HitReactAnimMontage);
 	}
+}
+
+void ASPlayerCharacter::DestroyPlayerCharacter_Server_Implementation()
+{
+	DestroyPlayerCharacter_NetMulticast();
+}
+
+void ASPlayerCharacter::DestroyPlayerCharacter_NetMulticast_Implementation()
+{
+	Destroy();
 }

@@ -162,6 +162,13 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void PlayHitReactMontage_NetMulticast();
 
+	// 플레이어 캐릭터 파괴 함수 -- 서버 접근용
+	UFUNCTION(Server, Reliable)
+	void DestroyPlayerCharacter_Server();
+	// 플레이어 캐릭터 파괴 함수 -- Other Client
+	UFUNCTION(NetMulticast, Reliable)
+	void DestroyPlayerCharacter_NetMulticast();
+
 public:
 	// 'CurrentBulletCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentBulletCountChangeDelegate OnCurrentBulletCountChangedDelegate;

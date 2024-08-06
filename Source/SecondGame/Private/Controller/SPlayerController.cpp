@@ -98,58 +98,44 @@ void ASPlayerController::BeginPlay()
 
 void ASPlayerController::OnCurrentKillCountReachedMax()
 {
-    // 1초 딜레이 후 게임 클리어 위젯 화면에 추가
-    FTimerHandle gameTimerHandle;
-    GetWorld()->GetTimerManager().SetTimer(gameTimerHandle, FTimerDelegate::CreateLambda([&]()
-    {
-        if (IsValid(GameClearWidgetClass) == true)
-        {
-            USGameResultWidget_Single* GameClearWidgetInstance =
-                CreateWidget<USGameResultWidget_Single>(this, GameClearWidgetClass);
-            if (IsValid(GameClearWidgetInstance) == true)
-            {
-                GameClearWidgetInstance->AddToViewport(5);
-                GameClearWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	// 게임 클리어 위젯 화면에 추가
+	if (IsValid(GameClearWidgetClass) == true)
+	{
+		USGameResultWidget_Single* GameClearWidgetInstance =
+			CreateWidget<USGameResultWidget_Single>(this, GameClearWidgetClass);
+		if (IsValid(GameClearWidgetInstance) == true)
+		{
+			GameClearWidgetInstance->AddToViewport(5);
+			GameClearWidgetInstance->SetVisibility(ESlateVisibility::Visible);
 
 
-                FInputModeUIOnly Mode;
-                Mode.SetWidgetToFocus(GameClearWidgetInstance->GetCachedWidget());
-                SetInputMode(Mode);
+			FInputModeUIOnly Mode;
+			Mode.SetWidgetToFocus(GameClearWidgetInstance->GetCachedWidget());
+			SetInputMode(Mode);
 
-                bShowMouseCursor = true;
-
-                // 게임 일시정지
-                SetPause(true);
-            }
-        }
-    }), 1.0f, false);
+			bShowMouseCursor = true;
+		}
+	}
 }
 
 void ASPlayerController::OnCurrentDeathCountReachedMax()
 {
-    // 1초 딜레이 후 게임 오버 위젯 화면에 추가
-    FTimerHandle gameTimerHandle;
-    GetWorld()->GetTimerManager().SetTimer(gameTimerHandle, FTimerDelegate::CreateLambda([&]()
-    {
-        if (IsValid(GameOverWidgetClass) == true)
-        {
-            USGameResultWidget_Single* GameOverWidgetInstance =
-                CreateWidget<USGameResultWidget_Single>(this, GameOverWidgetClass);
-            if (IsValid(GameOverWidgetInstance) == true)
-            {
-                GameOverWidgetInstance->AddToViewport(5);
-                GameOverWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	// 게임 오버 위젯 화면에 추가
+	if (IsValid(GameOverWidgetClass) == true)
+	{
+		USGameResultWidget_Single* GameOverWidgetInstance =
+			CreateWidget<USGameResultWidget_Single>(this, GameOverWidgetClass);
+		if (IsValid(GameOverWidgetInstance) == true)
+		{
+			GameOverWidgetInstance->AddToViewport(5);
+			GameOverWidgetInstance->SetVisibility(ESlateVisibility::Visible);
 
 
-                FInputModeUIOnly Mode;
-                Mode.SetWidgetToFocus(GameOverWidgetInstance->GetCachedWidget());
-                SetInputMode(Mode);
+			FInputModeUIOnly Mode;
+			Mode.SetWidgetToFocus(GameOverWidgetInstance->GetCachedWidget());
+			SetInputMode(Mode);
 
-                bShowMouseCursor = true;
-
-                // 게임 일시정지
-                SetPause(true);
-            }
-        }
-    }), 1.0f, false);
+			bShowMouseCursor = true;
+		}
+	}
 }

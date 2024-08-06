@@ -33,7 +33,7 @@ void ASGameMode_Multi::PostLogin(APlayerController* NewPlayer)
 	ASPlayerState* PlayerState = NewPlayer->GetPlayerState<ASPlayerState>();
 	if (true == ::IsValid(PlayerState))
 	{
-		PlayerState->InitPlayerState();
+		PlayerState->InitPlayerState_Client();
 	}
 
 	// 'AlivePlayerControllers'에 새로 입장한 플레이어 캐릭터 정보 추가

@@ -33,14 +33,20 @@ void ASPlayerState::InitPlayerState()
 		// -- PlayerName: 'APlayerState' 클래스에 기본적으로 포함된 속성
 		SetPlayerName(PlayerNameString);
 	}
+
+	// 속성값 초기화
+	CurrentKillCount = 0;
+	MaxKillCount = 5;
+	CurrentDeathCount = 0;
+	MaxDeathCount = 3;
 }
 
 void ASPlayerState::AddCurrentKillCount(int32 InCurrentKillCount)
 {
-	// 'CurrentKillCountChangedDelegate'에 바인드된 함수에게 Broadcast
-	OnCurrentKillCountChangedDelegate.Broadcast(CurrentKillCount, CurrentKillCount + InCurrentKillCount);
-
 	CurrentKillCount = FMath::Clamp(CurrentKillCount + InCurrentKillCount, 0, MaxKillCount);
+	
+	// 'CurrentKillCountChangedDelegate'에 바인드된 함수에게 Broadcast
+	OnCurrentKillCountChangedDelegate.Broadcast(CurrentKillCount, CurrentKillCount);
 
 	if (CurrentKillCount >= MaxKillCount) {
 		OnCurrentKillCountReachedMaxDelegate.Broadcast();
@@ -52,10 +58,10 @@ void ASPlayerState::AddCurrentKillCount(int32 InCurrentKillCount)
 
 void ASPlayerState::AddCurrentDeathCount(int32 InCurrentDeathCount)
 {
+	CurrentDeathCount = FMath::Clamp(CurrentDeathCount + InCurrentDeathCount, 0, MaxDeathCount);
+
 	// 'CurrentDeathCountChangedDelegate'에 바인드된 함수에게 Broadcast
 	OnCurrentDeathCountChangedDelegate.Broadcast(CurrentDeathCount, CurrentDeathCount + InCurrentDeathCount);
-
-	CurrentDeathCount = FMath::Clamp(CurrentDeathCount + InCurrentDeathCount, 0, MaxDeathCount);
 
 	if (CurrentDeathCount >= MaxDeathCount) {
 		OnCurrentDeathCountReachedMaxDelegate.Broadcast();
@@ -72,6 +78,11 @@ void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	// 해당 속성 포함해서 복제
 	DOREPLIFETIME(ThisClass, CurrentKillCount);
 	DOREPLIFETIME(ThisClass, CurrentDeathCount);
+}
+
+void ASPlayerState::InitPlayerState_Client_Implementation()
+{
+	InitPlayerState();
 }
 
 void ASPlayerState::OnCurrentKillCountChanged_NetMulticast_Implementation(int32 InCurrentKillCount)

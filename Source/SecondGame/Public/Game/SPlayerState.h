@@ -38,6 +38,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+	// 멀티 플레이 시 PlayerState 초기화 -- Owner Client
+	UFUNCTION(Client, Reliable)
+	void InitPlayerState_Client();
+
 private:
 	// 'CurrentKillCount' 변화 업데이트
 	UFUNCTION(NetMulticast, Reliable)
