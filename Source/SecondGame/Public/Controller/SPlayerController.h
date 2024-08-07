@@ -31,6 +31,18 @@ protected:
 	UFUNCTION()
 	void OnCurrentDeathCountReachedMax();
 
+	// 'OnCurrentKillCountChangedDelegate' 델리게이트에 바인드할 함수
+	UFUNCTION()
+	void OnCurrentKillCountChanged(int32 InOldCurrentKillCount, int32 InNewCurrentKillCount);
+	// 'OnCurrentDeathCountChangedDelegate' 델리게이트에 바인드할 함수
+	UFUNCTION()
+	void OnCurrentDeathCountChanged(int32 InOldCurrentDeathCount, int32 InNewCurrentDeathCount);
+
+public:
+	// 'NotificationWidget'에 적용될 텍스트
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess))
+	FText NotificationText;
+
 private:
 	// 조준점 위젯 클래스 정보
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
@@ -58,4 +70,8 @@ private:
 	TObjectPtr<UUserWidget> ManualWidgetInstance;
 	// 조작법 위젯 토글 확인
 	bool bIsManualOn = false;
+
+	// 알림창 위젯 클래스 정보
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TSubclassOf<UUserWidget> NotificationWidgetClass;
 };

@@ -50,6 +50,10 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void OnCurrentDeathCountChanged_NetMulticast(int32 InCurrentDeathCount);
 
+	// 멀티 플레이 시 서버에서 플레이어 이름 초기화
+	UFUNCTION(Server, Reliable)
+	void InitPlayerName_Server(const FString& PlayerName);
+
 public:
 	// 'CurrentKillCount'가 변화하면 BroadCast하는 델리게이트
 	FOnCurrentKillCountChangeDelegate OnCurrentKillCountChangedDelegate;

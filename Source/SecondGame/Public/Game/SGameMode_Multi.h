@@ -30,6 +30,9 @@ public:
 	// 'AlivePlayerControllers' Getter 함수
 	TArray<ASPlayerController_Multi*> GetAlivePlayerControllers() { return AlivePlayerControllers; }
 
+	// 킬로그 갱신 시 호출
+	void NotifyKillLog(const FString& KillLogString);
+
 private:
 	// 'MainTimerHandle' 타이머에 반응할 함수
 	UFUNCTION()

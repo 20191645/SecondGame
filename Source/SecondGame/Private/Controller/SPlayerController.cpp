@@ -76,12 +76,15 @@ void ASPlayerController::BeginPlay()
         }
     }
 
-    // 'OnCurrentKillCountReachedMaxDelegate, OnCurrentDeathCountReachedMaxDelegate' 델리게이트에 멤버함수 바인드
+    // 'SPlayerState'의 델리게이트에 멤버함수 바인드
     ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
     if (IsValid(SPlayerState) == true)
     {
         SPlayerState->OnCurrentKillCountReachedMaxDelegate.AddDynamic(this, &ThisClass::OnCurrentKillCountReachedMax);
         SPlayerState->OnCurrentDeathCountReachedMaxDelegate.AddDynamic(this, &ThisClass::OnCurrentDeathCountReachedMax);
+    
+        SPlayerState->OnCurrentKillCountChangedDelegate.AddDynamic(this, &ThisClass::OnCurrentKillCountChanged);
+        SPlayerState->OnCurrentDeathCountChangedDelegate.AddDynamic(this, &ThisClass::OnCurrentDeathCountChanged);
     }
 
     // 조작법 위젯 객체 생성
@@ -92,6 +95,17 @@ void ASPlayerController::BeginPlay()
         {
             ManualWidgetInstance->AddToViewport(3);
             ManualWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
+
+    // 알림창 위젯 생성
+    if (IsValid(NotificationWidgetClass) == true)
+    {
+        UUserWidget* NotificationWidgetInstance = CreateWidget<UUserWidget>(this, NotificationWidgetClass);
+        if (IsValid(NotificationWidgetInstance) == true)
+        {
+            NotificationWidgetInstance->AddToViewport(1);
+            NotificationWidgetInstance->SetVisibility(ESlateVisibility::Visible);
         }
     }
 }
@@ -138,4 +152,14 @@ void ASPlayerController::OnCurrentDeathCountReachedMax()
 			bShowMouseCursor = true;
 		}
 	}
+}
+
+void ASPlayerController::OnCurrentKillCountChanged(int32 InOldCurrentKillCount, int32 InNewCurrentKillCount)
+{
+    NotificationText = FText::FromString(TEXT("You killed an NPC"));
+}
+
+void ASPlayerController::OnCurrentDeathCountChanged(int32 InOldCurrentDeathCount, int32 InNewCurrentDeathCount)
+{
+    NotificationText = FText::FromString(TEXT("You were killed by an NPC"));
 }

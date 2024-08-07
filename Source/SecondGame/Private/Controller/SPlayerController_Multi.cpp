@@ -166,6 +166,7 @@ void ASPlayerController_Multi::BeginPlay()
             }
         }
 
+        // 알림창 위젯 생성
         if (IsValid(NotificationWidgetClass) == true)
         {
             UUserWidget* NotificationWidget = CreateWidget<UUserWidget>(this, NotificationWidgetClass);

@@ -100,6 +100,12 @@ void ASGameMode_Multi::OnControllerDead(ASPlayerController_Multi* InDeadControll
 	DeadPlayerControllers.Add(InDeadController);
 }
 
+void ASGameMode_Multi::NotifyKillLog(const FString& KillLogString)
+{
+	// 모든 플레이어에게 킬로그 알림
+	NotifyToAllPlayer(KillLogString);
+}
+
 void ASGameMode_Multi::OnMainTimerElapsed()
 {
 	ASGameState* SGameState = GetGameState<ASGameState>();
@@ -126,7 +132,7 @@ void ASGameMode_Multi::OnMainTimerElapsed()
 		// 게임 시작 최소 인원을 채웠을 경우
 		else
 		{
-			NotificationString = FString::Printf(TEXT("Wait %d seconds for playing"), RemainWaitingTimeForPlaying);
+			NotificationString = FString::Printf(TEXT("Wait %d seconds for playing"), RemainWaitingTimeForPlaying - 1);
 			// 대기 시간 감소
 			RemainWaitingTimeForPlaying--;
 		}
@@ -134,7 +140,7 @@ void ASGameMode_Multi::OnMainTimerElapsed()
 		// 게임 시작
 		if (0 == RemainWaitingTimeForPlaying)
 		{
-			NotificationString = FString::Printf(TEXT("Let's Game Start!"));
+			NotificationString = FString::Printf(TEXT("Let's start Second Game!"));
 			SGameState->MatchState = EMatchState::Playing;
 		}
 

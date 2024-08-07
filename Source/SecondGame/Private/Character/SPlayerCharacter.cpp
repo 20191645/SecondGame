@@ -24,6 +24,7 @@
 #include "Controller/SPlayerController_Multi.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
+#include "Game/SGameMode_Multi.h"
 
 ASPlayerCharacter::ASPlayerCharacter()
 {
@@ -187,6 +188,9 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	// 플레이어 캐릭터 죽음
 	if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
 	{
+		// 죽인, 죽은 플레이어 이름
+		FString DCCPlayerName, PlayerName;
+
 		// 플레이어 캐릭터를 죽인 플레이어의 'CurrentKillCount' 값 증가
 		// -> NPC 캐릭터에게 죽으면 영향X
 		ASPlayerCharacter* DamageCauserCharacter = Cast<ASPlayerCharacter>(DamageCauser);
@@ -196,6 +200,7 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 			if (IsValid(DCCPlayerState) == true)
 			{
 				DCCPlayerState->AddCurrentKillCount(1);
+				DCCPlayerName = DCCPlayerState->GetPlayerName();
 			}
 		}
 
@@ -205,6 +210,14 @@ float ASPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 		if (IsValid(SPlayerState) == true)
 		{
 			SPlayerState->AddCurrentDeathCount(1);
+			PlayerName = SPlayerState->GetPlayerName();
+		}
+
+		// 킬로그 갱신 함수 호출 -- 멀티 플레이
+		ASGameMode_Multi* GameMode = GetWorld()->GetAuthGameMode<ASGameMode_Multi>();
+		if (IsValid(GameMode) == true) {
+			FString KillLogString = DCCPlayerName + FString::Printf(TEXT(" killed %s"), *PlayerName);
+			GameMode->NotifyKillLog(KillLogString);
 		}
 	}
 	// 피격 상태

@@ -80,9 +80,17 @@ void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ThisClass, CurrentDeathCount);
 }
 
+void ASPlayerState::InitPlayerName_Server_Implementation(const FString& PlayerName)
+{
+	SetPlayerName(PlayerName);
+}
+
 void ASPlayerState::InitPlayerState_Client_Implementation()
 {
 	InitPlayerState();
+
+	// 서버에서 클라이언트의 'PlayerName' 값으로 초기화
+	InitPlayerName_Server(GetPlayerName());
 }
 
 void ASPlayerState::OnCurrentKillCountChanged_NetMulticast_Implementation(int32 InCurrentKillCount)

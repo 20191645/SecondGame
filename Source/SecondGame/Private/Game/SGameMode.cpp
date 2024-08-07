@@ -21,4 +21,10 @@ void ASGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		PlayerState->InitPlayerState();
 	}
+
+	// 알림창 텍스트 초기화
+	ASPlayerController* NewPlayerController = Cast<ASPlayerController>(NewPlayer);
+	if (IsValid(NewPlayerController) == true) {
+		NewPlayerController->NotificationText = FText::FromString(TEXT("Let's start Second Game!"));
+	}
 }
