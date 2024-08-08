@@ -187,7 +187,7 @@ void ASGameMode_Multi::OnMainTimerElapsed()
 				DeadController->ReturnToTitle();
 			}
 
-			// 타이머 클리어
+			// 타이머 무효화
 			MainTimerHandle.Invalidate();
 
 			// 서버 레벨 초기화

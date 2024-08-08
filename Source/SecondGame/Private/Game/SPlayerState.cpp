@@ -35,10 +35,10 @@ void ASPlayerState::InitPlayerState()
 	}
 
 	// 속성값 초기화
-	CurrentKillCount = 0;
 	MaxKillCount = 5;
-	CurrentDeathCount = 0;
 	MaxDeathCount = 3;
+	AddCurrentKillCount(0);
+	AddCurrentDeathCount(0);
 }
 
 void ASPlayerState::AddCurrentKillCount(int32 InCurrentKillCount)

@@ -24,4 +24,7 @@ public:
     // 'OnCurrentHPChangeDelegate' 델리게이트에 바인드할 함수
     UFUNCTION()
     void OnCurrentHPChange(float InOldHP, float InNewHP);
+
+protected:
+    virtual void NativeConstruct() override;
 };

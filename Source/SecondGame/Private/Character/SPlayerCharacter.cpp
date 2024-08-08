@@ -298,7 +298,7 @@ void ASPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Attack, ETriggerEvent::Completed, this, &ThisClass::StopFire);
 		// Reload('IA_Reload')을 스타트 상태에서 InputReload() 함수와 바인드
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Reload, ETriggerEvent::Started, this, &ThisClass::InputReload);
-		// Menu('IA_Menu')을 스타트 상태에서 InputMenu() 함수와 바인드
+		// Manual('IA_Manual')을 스타트 상태에서 InputManual() 함수와 바인드
 		EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->Manual, ETriggerEvent::Started, this, &ThisClass::InputManual);
 	}
 }
@@ -820,7 +820,6 @@ void ASPlayerCharacter::DestroyWeaponInstance_Server_Implementation()
 	if (IsValid(WeaponInstance) == true)
 	{
 		WeaponInstance->Destroy();
-		WeaponInstance = nullptr;
 	}
 }
 

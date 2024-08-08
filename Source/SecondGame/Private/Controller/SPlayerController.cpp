@@ -7,6 +7,7 @@
 #include "Component/SStatComponent.h"
 #include "Character/SCharacter.h"
 #include "UI/SGameResultWidget_Single.h"
+#include "Character/SPlayerCharacter.h"
 
 void ASPlayerController::ToggleManualWidget()
 {

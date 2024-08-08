@@ -7,6 +7,8 @@
 #include "SNonPlayerCharacter.generated.h"
 
 class ASWeaponActor;
+class USBW_HPBar;
+class USWidgetComponent;
 
 UCLASS()
 class SECONDGAME_API ASNonPlayerCharacter : public ASCharacter
@@ -24,6 +26,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	void SetHPBarWidget(USBW_HPBar* HPBarWidget);
 
 protected:
 	// 단발 사격 함수
@@ -56,4 +60,8 @@ protected:
 
 	// 최대 총알 개수
 	int32 MaxBulletCount;
+
+	// HP바 위젯 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TObjectPtr<USWidgetComponent> WidgetComponent;
 };

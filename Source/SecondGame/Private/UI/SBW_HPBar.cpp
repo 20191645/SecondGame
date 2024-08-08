@@ -4,6 +4,7 @@
 #include "Components/ProgressBar.h"
 #include "Character/SCharacter.h"
 #include "Component/SStatComponent.h"
+#include "Character/SNonPlayerCharacter.h"
 
 void USBW_HPBar::SetMaxHP(float InMaxHP)
 {
@@ -40,5 +41,16 @@ void USBW_HPBar::OnCurrentHPChange(float InOldHP, float InNewHP)
 		{
 			BarWidget->SetPercent(0.f);
 		}
+	}
+}
+
+void USBW_HPBar::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	// HP바 위젯의 소유 액터가 NPC일 때 세팅
+	ASNonPlayerCharacter* OwningNPC = Cast<ASNonPlayerCharacter>(OwningActor);
+	if (IsValid(OwningNPC) == true) {
+		OwningNPC->SetHPBarWidget(this);
 	}
 }

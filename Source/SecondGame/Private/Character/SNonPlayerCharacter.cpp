@@ -13,6 +13,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Component/SStatComponent.h"
 #include "Game/SPlayerState.h"
+#include "UI/SBW_HPBar.h"
+#include "Component/SWidgetComponent.h"
 
 ASNonPlayerCharacter::ASNonPlayerCharacter()
 {
@@ -24,6 +26,15 @@ ASNonPlayerCharacter::ASNonPlayerCharacter()
 
 	// 연발 사격 시간 간격 초기화
 	TimeBetweenFire = 60.f / FirePerMinute;
+
+	// 'WidgetComponent' 오브젝트 생성 및 설정
+	WidgetComponent = CreateDefaultSubobject<USWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(GetRootComponent());
+	WidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	// 레벨에 놓인 액터를 무시하고 표시되지 않도록 Screen -> World 수정
+	WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WidgetComponent->SetDrawSize(FVector2D(100.0f, 10.0f));
 }
 
 void ASNonPlayerCharacter::BeginPlay()
@@ -80,6 +91,7 @@ void ASNonPlayerCharacter::Tick(float DeltaSeconds)
 
 	ASAIController* AIController = GetController<ASAIController>();
 	if (IsValid(AIController) == true) {
+		// 'TargetActor' 향하도록 총구 방향 설정
 		if (ASPlayerCharacter* TargetPC =
 			Cast<ASPlayerCharacter>(AIController->GetBlackboardComponent()->GetValueAsObject(AIController->TargetActorKey)))
 		{
@@ -102,6 +114,14 @@ void ASNonPlayerCharacter::Tick(float DeltaSeconds)
 			CurrentAimYaw = GetActorRotation().Yaw;
 
 			AIController->SetControlRotation(FRotator(CurrentAimPitch, CurrentAimYaw, AIController->GetControlRotation().Roll));
+		}
+
+		// HP바 위젯을 플레이어의 화면을 기준으로 보이게 설정
+		if (IsValid(WidgetComponent) == true)
+		{
+			FVector WidgetComponentLocation = WidgetComponent->GetComponentLocation();
+			FVector LocalPlayerCameraLocation = UGameplayStatics::GetPlayerCameraManager(this, 0)->GetCameraLocation();
+			WidgetComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(WidgetComponentLocation, LocalPlayerCameraLocation));
 		}
 	}
 }
@@ -139,7 +159,6 @@ float ASNonPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& D
 		GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, FTimerDelegate::CreateLambda([&]()
 		{
 			WeaponInstance->Destroy();
-			WeaponInstance = nullptr;
 			Destroy();
 		}), 1.2f, false);
 	}
@@ -154,6 +173,17 @@ float ASNonPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& D
 	}
 
 	return FinialDamageAmount;
+}
+
+void ASNonPlayerCharacter::SetHPBarWidget(USBW_HPBar* HPBarWidget)
+{
+	USBW_HPBar* HPBar = HPBarWidget;
+	if (IsValid(HPBar) == true)
+	{
+		HPBar->SetMaxHP(StatComponent->GetMaxHP());
+		HPBar->InitializeHPBarWidget(StatComponent);
+		StatComponent->OnCurrentHPChangedDelegate.AddDynamic(HPBar, &USBW_HPBar::OnCurrentHPChange);
+	}
 }
 
 void ASNonPlayerCharacter::TryFire()
